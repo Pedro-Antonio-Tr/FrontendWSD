@@ -1,0 +1,6 @@
+/* Le damos un color de fondo muy suave a toda la aplicación para que las tarjetas blancas destaquen */
+:host {
+  display: block;
+  min-height: 100vh;
+  background-color: #f1f5f9;
+}
