@@ -1,0 +1,73 @@
+/* Eliminamos el borde por defecto y damos un sombreado más suave y elegante a la tarjeta */
+.card {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Pequeño efecto de elevación al pasar el ratón por la tarjeta */
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Título con un color más oscuro y peso de fuente mayor para destacar */
+.card-title {
+  font-weight: 700;
+  color: #2c3e50;
+  letter-spacing: -0.5px;
+}
+
+/* Campos de texto más grandes y con bordes redondeados modernos */
+.form-control {
+  border-radius: 10px;
+  padding: 0.8rem 1.2rem;
+  border: 1.5px solid #e2e8f0;
+  background-color: #f8fafc;
+  transition: all 0.3s ease;
+}
+
+/* Efecto al hacer clic en el campo de texto (Focus) */
+.form-control:focus {
+  background-color: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.15);
+}
+
+/* Estilo personalizado para el botón principal */
+.btn-primary {
+  border-radius: 10px;
+  padding: 0.8rem;
+  font-weight: 600;
+  font-size: 1.05rem;
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  transition: all 0.2s ease;
+}
+
+/* Efecto hover del botón */
+.btn-primary:hover {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+/* Efecto al hacer clic en el botón (se hunde ligeramente) */
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+/* Estilos para el enlace de registro */
+a {
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}

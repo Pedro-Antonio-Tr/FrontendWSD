@@ -1,21 +1,27 @@
-import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { AuthService } from '../../../core/services/auth'; // Tu servicio
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  // Añadimos RouterLinkActive para que funcione el resaltado de pestañas
   imports: [RouterLink, RouterLinkActive], 
   templateUrl: './navbar.html',
   styleUrls: ['./navbar.css']
 })
 export class Navbar {
-  // Esta variable controla qué enlaces se ven (más adelante la conectaremos al login real)
-  isLoggedIn = false; 
+  // Inyectamos el servicio y el enrutador de forma moderna
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
-  // Esta función se ejecuta al pulsar el botón "Cerrar Sesión"
+  // Usamos un 'getter'. Así el HTML preguntará en tiempo real si el usuario está logueado
+  get isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
+  // La función real para cerrar sesión
   logout() {
-    console.log('Cerrando sesión...');
-    // Aquí irá la lógica para borrar el token JWT
+    this.authService.logout(); // Borra el token
+    this.router.navigate(['/login']); // Te expulsa al login
   }
 }

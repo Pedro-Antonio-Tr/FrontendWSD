@@ -1,0 +1,34 @@
+/* Transición suave para todas las tarjetas del perfil */
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: #ffffff;
+}
+
+/* Efecto de elevación al pasar el ratón por encima */
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Hacemos que la letra inicial del Avatar tenga una fuente más amigable */
+.rounded-circle {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3) !important; /* Sombra azulada */
+}
+
+/* Botón de editar perfil un poco más grueso */
+.btn-outline-primary {
+  border-width: 2px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-outline-primary:hover {
+  transform: scale(1.02);
+}
+
+/* Hacemos que el número de saldo de horas destaque más */
+.display-3 {
+  color: #0d6efd !important; /* Azul de Bootstrap */
+  letter-spacing: -2px;
+}

@@ -1,0 +1,22 @@
+/* Animación suave para levantar las tarjetas de estadísticas */
+.hover-lift {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Redondear un poco los bordes de la tabla para que encaje con el diseño */
+.table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+th {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}

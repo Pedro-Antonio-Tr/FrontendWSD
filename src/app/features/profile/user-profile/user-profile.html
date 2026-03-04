@@ -1,1 +1,49 @@
-<p>user-profile works!</p>
+<div class="container mt-5">
+  <div class="row">
+    
+    <div class="col-md-4 mb-4">
+      <div class="card shadow-sm border-0 rounded-4 text-center p-4">
+        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-3 shadow" 
+             style="width: 100px; height: 100px; font-size: 2.5rem; font-weight: bold;">
+          {{ user.name.charAt(0) }}
+        </div>
+        <h3 class="card-title fw-bold mb-1">{{ user.name }}</h3>
+        <p class="text-muted mb-3">{{ user.email }}</p>
+        <span class="badge bg-light text-secondary border mb-4">Miembro desde {{ user.joinDate }}</span>
+
+        <button class="btn btn-outline-primary w-100 rounded-3">Editar Perfil</button>
+      </div>
+    </div>
+
+    <div class="col-md-8">
+      <div class="card shadow-sm border-0 rounded-4 mb-4" style="border-top: 5px solid #0d6efd !important;">
+        <div class="card-body p-4">
+          <h5 class="text-muted fw-bold mb-3">MI SALDO DE TIEMPO</h5>
+          <div class="d-flex align-items-center mb-3">
+            <h1 class="display-3 fw-bolder text-dark mb-0 me-3">{{ user.timeCredits }}</h1>
+            <span class="fs-4 text-muted">Horas disponibles</span>
+          </div>
+          <p class="text-secondary">
+            Este es tu saldo actual. Gana más horas ofreciendo tus servicios a la comunidad, 
+            o gasta tus horas pidiendo ayuda a otros miembros.
+          </p>
+          
+          <div class="mt-4 d-flex gap-2 flex-wrap">
+            <button class="btn btn-primary px-4 rounded-3">Pedir un servicio</button>
+            <button class="btn btn-success px-4 rounded-3">Ofrecer mi tiempo</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-3">Actividad Reciente</h5>
+          <div class="alert alert-light border text-center text-muted" role="alert">
+            Aún no tienes actividad registrada en el Banco de Tiempo.
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
