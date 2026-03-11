@@ -8,7 +8,7 @@ import { tap } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api/auth';
+  private apiUrl = 'http://172.19.170.165:3000';
   private tokenKey = 'timebank_jwt_token';
 
   // Inyectamos PLATFORM_ID para saber si estamos en el servidor o en el navegador

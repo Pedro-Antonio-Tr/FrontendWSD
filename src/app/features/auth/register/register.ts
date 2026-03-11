@@ -24,23 +24,29 @@ export class Register {
     private router: Router
   ) {}
 
-  onSubmit() {
+onSubmit() {
     if (this.registerForm.valid) {
-      // 1. Verificamos que las contraseñas sean idénticas
       if (this.registerForm.value.password !== this.registerForm.value.confirmPassword) {
         alert('Las contraseñas no coinciden. Por favor, revísalas.');
-        return; // Detenemos la ejecución aquí si no coinciden
+        return; 
       }
       
-      // 2. Quitamos el campo 'confirmPassword' porque al backend no le interesa
-      const { confirmPassword, ...userData } = this.registerForm.value;
+      // 2. Extraemos los valores del formulario
+      const formValues = this.registerForm.value;
 
-      // 3. Enviamos los datos al backend a través de nuestro servicio
-      this.authService.register(userData).subscribe({
+      // 3. TRADUCCIÓN: Empaquetamos los datos exactamente como los pide el backend (DTO)
+      const userDataForBackend = {
+        fullName: formValues.name, // Convertimos tu 'name' al 'fullName' del backend
+        email: formValues.email,
+        password: formValues.password
+      };
+
+      // 4. Enviamos los datos adaptados al backend
+      this.authService.register(userDataForBackend).subscribe({
         next: (response) => {
           console.log('¡Registro exitoso!', response);
           alert('¡Cuenta creada con éxito! Ahora puedes iniciar sesión.');
-          this.router.navigate(['/login']); // Redirigimos al usuario al login
+          this.router.navigate(['/login']); 
         },
         error: (err) => {
           console.error('Error al registrarse', err);
@@ -49,7 +55,6 @@ export class Register {
       });
 
     } else {
-      // Si el formulario es inválido, mostramos los errores en rojo
       this.registerForm.markAllAsTouched();
     }
   }
