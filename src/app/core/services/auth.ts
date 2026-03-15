@@ -8,7 +8,7 @@ import { tap } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://172.19.170.165:3000';
+  private apiUrl = 'http://localhost:3000/api/auth';
   private tokenKey = 'timebank_jwt_token';
 
   // Inyectamos PLATFORM_ID para saber si estamos en el servidor o en el navegador
@@ -21,16 +21,18 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/register`, userData);
   }
 
-  login(credentials: any): Observable<any> {
+login(credentials: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/login`, credentials).pipe(
       tap((response: any) => {
-        if (response && response.token) {
-          this.setToken(response.token);
+        // Buscamos 'token' o 'access_token' (por si acaso NestJS usa el nombre por defecto)
+        const tokenReal = response?.token || response?.access_token;
+        if (tokenReal) {
+          this.setToken(tokenReal);
         }
       })
     );
   }
-
+  
   logout(): void {
     // Solo borramos si estamos en el navegador
     if (isPlatformBrowser(this.platformId)) {
