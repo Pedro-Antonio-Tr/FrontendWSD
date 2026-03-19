@@ -32,6 +32,11 @@ login(credentials: any): Observable<any> {
       })
     );
   }
+
+  // Obtiene los datos del perfil del usuario logueado
+  getProfile(): Observable<any> {
+    return this.http.get('http://localhost:3000/api/users/me');
+  }
   
   logout(): void {
     // Solo borramos si estamos en el navegador

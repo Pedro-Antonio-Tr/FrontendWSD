@@ -1,24 +1,33 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { AuthService } from '../../../core/services/auth';
 
 @Component({
   selector: 'app-user-profile',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './user-profile.html',
-  styleUrls: ['./user-profile.css'] 
+  styleUrls: ['./user-profile.css']
 })
 export class UserProfile implements OnInit {
-  // Datos simulados (Mock). En el Sprint 2 los pediremos al backend usando el token JWT
-  user = {
-    name: 'Estudiante WSD',
-    email: 'estudiante@uclm.es',
-    joinDate: 'Marzo 2026',
-    timeCredits: 5 // Este es el saldo vital del Banco de Tiempo
-  };
+  userData: any = null;
+  isLoading: boolean = true;
+  errorMessage: string = '';
+
+  constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
-    // Aquí es donde en el futuro llamaremos a un UserService para traer los datos reales
-    console.log('Perfil cargado. Listo para mostrar datos.');
+    this.authService.getProfile().subscribe({
+      next: (data) => {
+        console.log('Datos reales del backend:', data);
+        this.userData = data;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error al cargar el perfil', error);
+        this.errorMessage = 'No se pudieron cargar los datos del perfil.';
+        this.isLoading = false;
+      }
+    });
   }
 }

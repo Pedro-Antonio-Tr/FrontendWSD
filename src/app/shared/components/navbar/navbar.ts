@@ -22,6 +22,6 @@ export class Navbar {
   // La función real para cerrar sesión
   logout() {
     this.authService.logout(); // Borra el token
-    this.router.navigate(['/login']); // Te expulsa al login
+    this.router.navigate(['/']); // Te redirije a la pantalla de inicio 
   }
 }

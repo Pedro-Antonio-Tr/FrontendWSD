@@ -1,0 +1,69 @@
+.hero-background {
+  /* La artillería pesada: ignoramos el contenedor padre */
+  position: absolute;
+  top: 56px; /* Altura aproximada de la barra azul. Cámbialo a 56px o 65px si ves que no encaja exacto */
+  left: 0;
+  
+  /* Ocupamos el 100% de la pantalla restante */
+  width: 100vw;
+  height: calc(100vh - 60px); 
+  
+  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), 
+              url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center center / cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: white;
+  z-index: 10; /* Aseguramos que el fondo se ponga en su sitio */
+}
+
+.hero-content {
+  max-width: 600px;
+  padding: 2rem;
+  position: relative; 
+  z-index: 20; /* Elevamos el texto para que no se quede detrás del fondo */
+}
+
+.title {
+  font-size: 4rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  font-size: 1.5rem;
+  margin-bottom: 2.5rem;
+  color: #e2e8f0;
+}
+
+.btn-start {
+  background-color: #3b82f6;
+  color: white;
+  padding: 15px 40px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-start:hover {
+  background-color: #2563eb;
+}
+
+.login-link {
+  margin-top: 20px;
+  font-size: 1rem;
+}
+
+.login-link a {
+  color: #60a5fa;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.login-link a:hover {
+  text-decoration: underline;
+}
