@@ -13,30 +13,30 @@
         
         @if (!isLoggedIn) {
           <li class="nav-item">
-            <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Inicio</a>
+            <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" routerLink="/login" routerLinkActive="active">Iniciar Sesión</a>
+            <a class="nav-link" routerLink="/login" routerLinkActive="active">Login</a>
           </li>
           <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
-            <a class="btn btn-light text-primary fw-semibold px-3" routerLink="/register">Registrarse</a>
+            <a class="btn btn-light text-primary fw-semibold px-3" routerLink="/register">Sign up</a>
           </li>
         }
 
         @if (isLoggedIn) {
           <li class="nav-item">
-            <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Inicio</a>
+            <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" routerLink="/profile" routerLinkActive="active">Mi Perfil</a>
+            <a class="nav-link" routerLink="/profile" routerLinkActive="active">My Profile</a>
           </li>
           @if (isAdmin) {
             <li class="nav-item">
-              <a class="nav-link" routerLink="/admin" routerLinkActive="active">Panel Admin</a>
+              <a class="nav-link" routerLink="/admin" routerLinkActive="active">Admin Panel</a>
             </li>
           }
           <li class="nav-item ms-lg-3 mt-2 mt-lg-0">
-            <button class="btn btn-danger btn-sm px-3 shadow-sm" (click)="logout()">Cerrar Sesión</button>
+            <button class="btn btn-danger btn-sm px-3 shadow-sm" (click)="logout()">Log Out</button>
           </li>
         }
         

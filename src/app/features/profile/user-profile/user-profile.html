@@ -4,14 +4,14 @@
       
       <div class="card shadow-sm border-0 rounded-4">
         <div class="card-header bg-primary text-white text-center py-4 rounded-top-4">
-          <h2 class="mb-0 fw-bold">Mi Perfil</h2>
-          <p class="mb-0 text-white-50">Gestión de cuenta</p>
+          <h2 class="mb-0 fw-bold">My Profile</h2>
+          <p class="mb-0 text-white-50">Account management</p>
         </div>
 
         <div class="card-body p-4 text-center">
           @if (isLoading) {
             <div class="spinner-border text-primary my-4" role="status">
-              <span class="visually-hidden">Cargando...</span>
+              <span class="visually-hidden">Loading...</span>
             </div>
           }
 
@@ -37,7 +37,7 @@
             
             <hr class="my-4 text-muted">
             <p class="small text-muted">
-              Miembro de Time Bank desde {{ (userData.createdAt | date:'longDate') || '2026' }}
+              Time Bank member since {{ (userData.createdAt | date:'longDate') || '2026' }}
             </p>
           }
         </div>

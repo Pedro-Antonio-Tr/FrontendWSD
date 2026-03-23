@@ -44,13 +44,13 @@ onSubmit() {
       // 4. Enviamos los datos adaptados al backend
       this.authService.register(userDataForBackend).subscribe({
         next: (response) => {
-          console.log('¡Registro exitoso!', response);
-          alert('¡Cuenta creada con éxito! Ahora puedes iniciar sesión.');
+          console.log('Registration successful!', response);
+          alert('Account created successfully! You can now log in.');
           this.router.navigate(['/login']); 
         },
         error: (err) => {
-          console.error('Error al registrarse', err);
-          alert('Hubo un problema al crear la cuenta. Inténtalo de nuevo.');
+          console.error('Error during registration', err);
+          alert('There was a problem creating the account. Please try again.');
         }
       });
 
