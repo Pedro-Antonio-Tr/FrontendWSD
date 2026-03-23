@@ -1,17 +1,23 @@
-import { inject } from '@angular/core';
+import { inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth';
 
 export const roleGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
+  const platformId = inject(PLATFORM_ID);
 
-  // Si está logueado, por ahora le dejamos pasar. 
-  // (En el Sprint 2 aquí leeremos el token para comprobar si su rol es 'ADMIN')
-  if (authService.isLoggedIn()) {
+  if (!isPlatformBrowser(platformId)) {
     return true; 
   }
 
-  router.navigate(['/login']);
+  // Verificamos si realmente es admin leyendo el token
+  if (authService.isAdmin()) {
+    return true; 
+  }
+
+  // Si no es admin, lo mandamos a la pantalla de inicio
+  router.navigate(['/']);
   return false;
 };

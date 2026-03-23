@@ -19,6 +19,10 @@ export class Navbar {
     return this.authService.isLoggedIn();
   }
 
+  get isAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
+
   // La función real para cerrar sesión
   logout() {
     this.authService.logout(); // Borra el token

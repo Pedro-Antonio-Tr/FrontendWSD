@@ -28,9 +28,17 @@ export class Login {
           console.log('¡Login exitoso!', response);
           this.router.navigate(['/']); 
         },
-        error: (error) => {
-          console.error('Error al iniciar sesión', error);
-          alert('Ups... Correo o contraseña incorrectos. ¡Inténtalo de nuevo!');
+        error: (err) => {
+          console.error('Error al iniciar sesión', err);
+          
+          const mensajeBackend = err.error?.message;
+
+          // Si no hay mensaje específico, usamos el genérico.
+          if (mensajeBackend) {
+            alert(mensajeBackend); 
+          } else {
+            alert('Ups... Correo o contraseña incorrectos. ¡Inténtalo de nuevo!');
+          }
         }
       });
     } else {

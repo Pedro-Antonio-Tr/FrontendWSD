@@ -64,4 +64,23 @@ login(credentials: any): Observable<any> {
   isLoggedIn(): boolean {
     return this.getToken() !== null;
   }
+
+  getRole(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+    
+    try {
+      // Un JWT tiene 3 partes separadas por puntos. El payload es la segunda [1].
+      const payload = token.split('.')[1]; 
+      const decodedJson = atob(payload); // Decodificamos la base64
+      const decoded = JSON.parse(decodedJson);
+      return decoded.role; // Devuelve 'admin' o 'user'
+    } catch (e) {
+      return null;
+    }
+  }
+
+  isAdmin(): boolean {
+    return this.getRole() === 'admin';
+  }
 }

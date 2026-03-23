@@ -8,12 +8,15 @@ import { AdminDashboard } from './features/admin/admin-dashboard/admin-dashboard
 // Importamos los guards
 import { authGuard } from './core/guards/auth-guard';
 import { roleGuard } from './core/guards/role-guard';
+import { guestGuard } from './core/guards/guest-guard';
 
 export const routes: Routes = [
-  // Rutas públicas
+  // Ruta pública
   { path: '', component: HomeComponent }, 
-  { path: 'login', component: Login },
-  { path: 'register', component: Register },
+
+  // Rutas para autenticación (solo para no logueados)
+  { path: 'login', component: Login, canActivate: [guestGuard] }, // Solo para no logueados
+  { path: 'register', component: Register, canActivate: [guestGuard] },
   
   // Ruta protegida: Solo para usuarios logueados (rol estándar o admin)
   { 
