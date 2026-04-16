@@ -88,7 +88,11 @@
                     </button>
                   </div>
                 } @else {
-                  <button class="btn btn-outline-primary w-100 fw-semibold">Request Service</button>
+                  <button class="btn btn-outline-primary w-100 fw-semibold"
+                          (click)="openBuyModal(service)"
+                          data-bs-toggle="modal" data-bs-target="#buyConfirmModal">
+                    Request Service
+                  </button>
                 }
               </div>
             </div>
@@ -181,6 +185,61 @@
       <div class="modal-footer justify-content-center border-0 pb-4">
         <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal">No, keep it</button>
         <button type="button" class="btn btn-danger fw-bold px-4" (click)="confirmDelete()">Yes, cancel it</button>
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="buyConfirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      
+      <div class="modal-header bg-success text-white border-0">
+        <h5 class="modal-title fw-bold">Confirm Request</h5>
+        <button type="button" class="btn-close btn-close-white" id="closeBuyModalBtn" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body p-4">
+        @if (serviceToBuy) {
+          <h4 class="fw-bold mb-3">{{ serviceToBuy.title }}</h4>
+          
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Price:</span>
+            <span class="fw-bold text-danger">- {{ serviceToBuy.price }} TC</span>
+          </div>
+          
+          <div class="d-flex justify-content-between mb-4 pb-3 border-bottom">
+            <span class="text-muted">Your Current Balance:</span>
+            <span class="fw-bold text-success">{{ currentBalance }} TC</span>
+          </div>
+
+          @if (currentBalance < serviceToBuy.price) {
+            <div class="alert alert-danger d-flex align-items-center" role="alert">
+              <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
+              <div>Insufficient Time Credits to request this service.</div>
+            </div>
+          } @else {
+            <div class="alert alert-info d-flex align-items-center" role="alert">
+              <i class="bi bi-info-circle-fill me-2 fs-4"></i>
+              <div>After this transaction, your new balance will be <strong>{{ currentBalance - serviceToBuy.price }} TC</strong>.</div>
+            </div>
+          }
+        }
+      </div>
+      
+      <div class="modal-footer justify-content-end border-0 pb-4">
+        <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal" [disabled]="isBuying">Cancel</button>
+        
+        <button type="button" class="btn btn-success fw-bold px-4 shadow-sm"
+                [disabled]="isBuying || !serviceToBuy || currentBalance < serviceToBuy.price"
+                (click)="confirmPurchase()">
+          @if (isBuying) {
+            <span class="spinner-border spinner-border-sm me-2"></span> Processing...
+          } @else {
+            Confirm Payment
+          }
+        </button>
       </div>
       
     </div>

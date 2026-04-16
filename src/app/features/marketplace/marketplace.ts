@@ -3,6 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms'; 
 import { ServiceMarketplaceService } from '../../core/services/service.service';
 import { AuthService } from '../../core/services/auth';
+import { TransactionService } from '../../core/services/transaction.service';
 
 @Component({
   selector: 'app-marketplace',
@@ -16,6 +17,11 @@ export class MarketplaceComponent implements OnInit {
   isLoading: boolean = true;
   currentUserId: string | null = null;
   
+  // --- VARIABLES PARA EL SALDO Y COMPRA ---
+  currentBalance: number = 0;
+  serviceToBuy: any = null;
+  isBuying: boolean = false;
+
   serviceForm: FormGroup;
   isSubmitting: boolean = false;
   isEditing: boolean = false;
@@ -26,6 +32,7 @@ export class MarketplaceComponent implements OnInit {
   constructor(
     private marketplaceService: ServiceMarketplaceService,
     private authService: AuthService,
+    private transactionService: TransactionService, 
     private fb: FormBuilder,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
@@ -44,6 +51,13 @@ export class MarketplaceComponent implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       this.cargarUsuarioActual();
       this.cargarServicios();
+      
+      // Escuchamos el saldo en tiempo real para usarlo en el modal de compra
+      this.authService.currentBalance$.subscribe(balance => {
+        if (balance !== null) {
+          this.currentBalance = balance;
+        }
+      });
     } else {
       this.isLoading = false;
     }
@@ -53,7 +67,6 @@ export class MarketplaceComponent implements OnInit {
     this.authService.getProfile().subscribe({
       next: (user) => {
         this.currentUserId = user.id; 
-        console.log('ID del usuario actual para el Marketplace:', this.currentUserId);
       },
       error: (err) => {
         console.error('Error al obtener el ID del usuario', err);
@@ -78,6 +91,45 @@ export class MarketplaceComponent implements OnInit {
     });
   }
 
+  // --- LÓGICA DE COMPRA ---
+  openBuyModal(service: any): void {
+    this.serviceToBuy = service;
+  }
+
+  confirmPurchase(): void {
+    if (!this.serviceToBuy) return;
+    this.isBuying = true;
+
+    // Preparamos los datos tal y como los pide el backend
+    const transactionData = {
+      receiverId: this.serviceToBuy.provider.id,
+      serviceId: this.serviceToBuy.id,
+      amount: this.serviceToBuy.price,
+      concept: `Payment for: ${this.serviceToBuy.title}`
+    };
+
+    this.transactionService.transferCredits(transactionData).subscribe({
+      next: () => {
+        this.isBuying = false;
+        alert('¡Servicio contratado con éxito!');
+        
+        // Cerramos el modal
+        document.getElementById('closeBuyModalBtn')?.click();
+
+        // Actualizamos el perfil para que el Navbar reaccione al nuevo saldo
+        this.authService.getProfile().subscribe(); 
+        
+        // Recargamos el tablón de anuncios
+        this.cargarServicios(); 
+      },
+      error: (err) => {
+        this.isBuying = false;
+        alert(err.error?.message || 'Error al procesar el pago. Revisa tu saldo.');
+      }
+    });
+  }
+
+  // --- LÓGICA DE GESTIÓN PROPIA (EDITAR / BORRAR) ---
   openEditModal(service: any): void {
     this.isEditing = true;
     this.editingServiceId = service.id;
@@ -138,7 +190,6 @@ export class MarketplaceComponent implements OnInit {
 
   openDeleteModal(id: string): void {
     this.serviceToDelete = id;
-    // El HTML se encargará de abrir el modal con los atributos data-bs-toggle
   }
 
   confirmDelete(): void {
@@ -148,7 +199,6 @@ export class MarketplaceComponent implements OnInit {
       next: () => {
         this.cargarServicios();
         this.serviceToDelete = null;
-        // Cerramos el modal usando el botón oculto
         document.getElementById('closeDeleteModalBtn')?.click(); 
       },
       error: (err) => console.error('Error al borrar', err)

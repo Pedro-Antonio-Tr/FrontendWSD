@@ -1,6 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
-import { AuthService } from '../../../core/services/auth'; // Tu servicio
+import { AuthService } from '../../../core/services/auth'; 
 
 @Component({
   selector: 'app-navbar',
@@ -10,12 +10,10 @@ import { AuthService } from '../../../core/services/auth'; // Tu servicio
   styleUrls: ['./navbar.css']
 })
 export class Navbar implements OnInit {
-  // Inyectamos el servicio y el enrutador de forma moderna
   private authService = inject(AuthService);
   private router = inject(Router);
   userBalance = 0;
 
-  // Usamos un 'getter'. Así el HTML preguntará en tiempo real si el usuario está logueado
   get isLoggedIn(): boolean {
     return this.authService.isLoggedIn();
   }
@@ -24,15 +22,23 @@ export class Navbar implements OnInit {
     return this.authService.isAdmin();
   }
 
-  // La función real para cerrar sesión
   logout() {
-    this.authService.logout(); // Borra el token
-    this.router.navigate(['/']); // Te redirije a la pantalla de inicio 
+    this.authService.logout(); 
+    this.router.navigate(['/']); 
   }
 
   ngOnInit() {
     if (this.isLoggedIn) {
-      this.authService.getProfile().subscribe(user => this.userBalance = user.balance);
+      // 1. Nos ponemos los "auriculares": escuchamos los cambios de saldo en tiempo real
+      this.authService.currentBalance$.subscribe(balance => {
+        // Si hay un saldo válido (no es null), actualizamos el numerito visual
+        if (balance !== null) {
+          this.userBalance = balance;
+        }
+      });
+      
+      // 2. Pedimos los datos al backend la primera vez para que el "megáfono" empiece a gritar
+      this.authService.getProfile().subscribe();
     }
   }
 }

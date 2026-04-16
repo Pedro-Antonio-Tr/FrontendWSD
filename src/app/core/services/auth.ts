@@ -1,7 +1,7 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { isPlatformBrowser } from '@angular/common';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs'; // <-- AÑADIMOS BehaviorSubject
 import { tap } from 'rxjs/operators';
 
 @Injectable({
@@ -11,7 +11,12 @@ export class AuthService {
   private apiUrl = 'http://localhost:3000/api/auth';
   private tokenKey = 'timebank_jwt_token';
 
-  // Inyectamos PLATFORM_ID para saber si estamos en el servidor o en el navegador
+  // --- EL MEGÁFONO DEL SALDO ---
+  // Creamos el BehaviorSubject que guardará el saldo en memoria. Empezamos en null.
+  private balanceSubject = new BehaviorSubject<number | null>(null);
+  // Esta es la variable pública a la que los componentes (Navbar, Modal) se van a suscribir
+  public currentBalance$ = this.balanceSubject.asObservable(); 
+
   constructor(
     private http: HttpClient,
     @Inject(PLATFORM_ID) private platformId: Object
@@ -21,10 +26,9 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/register`, userData);
   }
 
-login(credentials: any): Observable<any> {
+  login(credentials: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/login`, credentials).pipe(
       tap((response: any) => {
-        // Buscamos 'token' o 'access_token' (por si acaso NestJS usa el nombre por defecto)
         const tokenReal = response?.token || response?.access_token;
         if (tokenReal) {
           this.setToken(tokenReal);
@@ -33,31 +37,36 @@ login(credentials: any): Observable<any> {
     );
   }
 
-  // Obtiene los datos del perfil del usuario logueado
+  // Obtiene los datos del perfil y AVISA AL MEGÁFONO del nuevo saldo
   getProfile(): Observable<any> {
-    return this.http.get('http://localhost:3000/api/users/me');
+    return this.http.get('http://localhost:3000/api/users/me').pipe(
+      tap((data: any) => {
+        // Si nos llega el perfil y tiene un balance, lo emitimos a todos los que escuchan
+        if (data && data.balance !== undefined) {
+          this.balanceSubject.next(data.balance);
+        }
+      })
+    );
   }
   
   logout(): void {
-    // Solo borramos si estamos en el navegador
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem(this.tokenKey);
     }
+    // Cuando cerramos sesión, vaciamos el megáfono por seguridad
+    this.balanceSubject.next(null);
   }
 
   private setToken(token: string): void {
-    // Solo guardamos si estamos en el navegador
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem(this.tokenKey, token);
     }
   }
 
   getToken(): string | null {
-    // Solo leemos el localStorage si estamos en el navegador
     if (isPlatformBrowser(this.platformId)) {
       return localStorage.getItem(this.tokenKey);
     }
-    // Si el servidor (SSR) intenta leerlo, le decimos que no hay token
     return null; 
   }
 
@@ -70,11 +79,10 @@ login(credentials: any): Observable<any> {
     if (!token) return null;
     
     try {
-      // Un JWT tiene 3 partes separadas por puntos. El payload es la segunda [1].
       const payload = token.split('.')[1]; 
-      const decodedJson = atob(payload); // Decodificamos la base64
+      const decodedJson = atob(payload); 
       const decoded = JSON.parse(decodedJson);
-      return decoded.role; // Devuelve 'admin' o 'user'
+      return decoded.role; 
     } catch (e) {
       return null;
     }
@@ -84,24 +92,15 @@ login(credentials: any): Observable<any> {
     return this.getRole() === 'admin';
   }
 
-getUserId(): string | null {
-    const token = this.getToken(); // <-- ¿Cómo se llama tu método para obtener el token?
-    console.log('Paso 1 - Token crudo:', token);
-
+  getUserId(): string | null {
+    const token = this.getToken();
     if (!token) {
-      console.log('Paso 2 - No hay token guardado.');
       return null;
     }
     
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      console.log('Paso 3 - Payload completo del token:', payload);
-      
-      // Buscamos las propiedades más comunes. Si en el paso 3 ves que tu ID 
-      // tiene un nombre raro (ej. 'usuario_id'), añádelo aquí:
       const miId = payload.id || payload.sub || payload.userId;
-      console.log('Paso 4 - ID final detectado:', miId);
-      
       return miId;
     } catch (e) {
       console.error('Error descifrando el token:', e);
