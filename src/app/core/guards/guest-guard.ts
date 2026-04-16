@@ -12,7 +12,7 @@ export const guestGuard: CanActivateFn = (route, state) => {
 
   // Si ya está logueado, no le dejamos entrar a Login/Registro y le mandamos a Inicio
   if (authService.isLoggedIn()) {
-    router.navigate(['/']);
+    router.navigate(['/marketplace']);
     return false;
   }
 

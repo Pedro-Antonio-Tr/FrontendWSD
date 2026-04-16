@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms'; 
 import { ServiceMarketplaceService } from '../../core/services/service.service';
+import { AuthService } from '../../core/services/auth';
 
 @Component({
   selector: 'app-marketplace',
@@ -13,29 +14,59 @@ import { ServiceMarketplaceService } from '../../core/services/service.service';
 export class MarketplaceComponent implements OnInit {
   services: any[] = [];
   isLoading: boolean = true;
+  currentUserId: string | null = null;
   
-  // Variables para el formulario
   serviceForm: FormGroup;
   isSubmitting: boolean = false;
+  isEditing: boolean = false;
+  editingServiceId: string | null = null;
+  serviceToDelete: string | null = null;
+  filterForm: FormGroup;
 
   constructor(
     private marketplaceService: ServiceMarketplaceService,
-    private fb: FormBuilder
+    private authService: AuthService,
+    private fb: FormBuilder,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.serviceForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(5)]],
       description: ['', [Validators.required, Validators.minLength(10)]],
-      price: [10, [Validators.required, Validators.min(1)]] // Por defecto cuesta 10 créditos
+      price: [10, [Validators.required, Validators.min(1)]]
+    });
+    this.filterForm = this.fb.group({
+      search: [''],
+      maxPrice: [null]
     });
   }
 
   ngOnInit(): void {
-    this.cargarServicios();
+    if (isPlatformBrowser(this.platformId)) {
+      this.cargarUsuarioActual();
+      this.cargarServicios();
+    } else {
+      this.isLoading = false;
+    }
+  }
+
+  cargarUsuarioActual(): void {
+    this.authService.getProfile().subscribe({
+      next: (user) => {
+        this.currentUserId = user.id; 
+        console.log('ID del usuario actual para el Marketplace:', this.currentUserId);
+      },
+      error: (err) => {
+        console.error('Error al obtener el ID del usuario', err);
+      }
+    });
   }
 
   cargarServicios(): void {
     this.isLoading = true;
-    this.marketplaceService.getAllActiveServices().subscribe({
+    
+    const currentFilters = this.filterForm.value;
+
+    this.marketplaceService.getAllActiveServices(currentFilters).subscribe({
       next: (data) => {
         this.services = data;
         this.isLoading = false;
@@ -47,6 +78,22 @@ export class MarketplaceComponent implements OnInit {
     });
   }
 
+  openEditModal(service: any): void {
+    this.isEditing = true;
+    this.editingServiceId = service.id;
+    this.serviceForm.patchValue({
+      title: service.title,
+      description: service.description,
+      price: service.price
+    });
+  }
+
+  resetForm(): void {
+    this.isEditing = false;
+    this.editingServiceId = null;
+    this.serviceForm.reset({ price: 10 });
+  }
+
   onSubmit(): void {
     if (this.serviceForm.invalid) {
       this.serviceForm.markAllAsTouched();
@@ -54,23 +101,62 @@ export class MarketplaceComponent implements OnInit {
     }
 
     this.isSubmitting = true;
+
+    if (this.isEditing && this.editingServiceId) {
+      this.marketplaceService.updateService(this.editingServiceId, this.serviceForm.value).subscribe({
+        next: () => this.handleSuccess(),
+        error: () => this.handleError()
+      });
+    } else {
+      this.marketplaceService.createService(this.serviceForm.value).subscribe({
+        next: () => this.handleSuccess(),
+        error: () => this.handleError()
+      });
+    }
+  }
+
+  onDeleteService(id: string): void {
+    if (confirm('Are you sure you want to cancel this service? This action is permanent.')) {
+      this.marketplaceService.deleteService(id).subscribe({
+        next: () => this.cargarServicios(),
+        error: (err) => console.error('Error deleting service', err)
+      });
+    }
+  }
+
+  private handleSuccess() {
+    this.isSubmitting = false;
+    this.cargarServicios();
+    document.getElementById('closeModalBtn')?.click();
+    this.resetForm();
+  }
+
+  private handleError() {
+    this.isSubmitting = false;
+    alert('An error occurred.');
+  }
+
+  openDeleteModal(id: string): void {
+    this.serviceToDelete = id;
+    // El HTML se encargará de abrir el modal con los atributos data-bs-toggle
+  }
+
+  confirmDelete(): void {
+    if (!this.serviceToDelete) return;
     
-    this.marketplaceService.createService(this.serviceForm.value).subscribe({
-      next: (response) => {
-        console.log('Servicio creado:', response);
-        this.isSubmitting = false;
-        this.serviceForm.reset({ price: 10 }); 
-        
-        // Recargamos la lista para que aparezca el nuevo servicio al instante
+    this.marketplaceService.deleteService(this.serviceToDelete).subscribe({
+      next: () => {
         this.cargarServicios();
-        
-        document.getElementById('closeModalBtn')?.click();
+        this.serviceToDelete = null;
+        // Cerramos el modal usando el botón oculto
+        document.getElementById('closeDeleteModalBtn')?.click(); 
       },
-      error: (err) => {
-        console.error('Error al crear el servicio', err);
-        this.isSubmitting = false;
-        alert('Hubo un error al publicar el servicio.');
-      }
+      error: (err) => console.error('Error al borrar', err)
     });
+  }
+
+  resetFilters(): void {
+    this.filterForm.reset();
+    this.cargarServicios();
   }
 }

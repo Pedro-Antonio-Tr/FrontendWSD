@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth'; // Tu servicio
 
@@ -9,10 +9,11 @@ import { AuthService } from '../../../core/services/auth'; // Tu servicio
   templateUrl: './navbar.html',
   styleUrls: ['./navbar.css']
 })
-export class Navbar {
+export class Navbar implements OnInit {
   // Inyectamos el servicio y el enrutador de forma moderna
   private authService = inject(AuthService);
   private router = inject(Router);
+  userBalance = 0;
 
   // Usamos un 'getter'. Así el HTML preguntará en tiempo real si el usuario está logueado
   get isLoggedIn(): boolean {
@@ -27,5 +28,11 @@ export class Navbar {
   logout() {
     this.authService.logout(); // Borra el token
     this.router.navigate(['/']); // Te redirije a la pantalla de inicio 
+  }
+
+  ngOnInit() {
+    if (this.isLoggedIn) {
+      this.authService.getProfile().subscribe(user => this.userBalance = user.balance);
+    }
   }
 }

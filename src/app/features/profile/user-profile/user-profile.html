@@ -1,6 +1,7 @@
 <div class="container mt-5 pt-4">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
+  
+  <div class="row justify-content-center mb-5">
+    <div class="col-md-8 col-lg-6">
       
       <div class="card shadow-sm border-0 rounded-4">
         <div class="card-header bg-primary text-white text-center py-4 rounded-top-4">
@@ -29,20 +30,159 @@
             <h3 class="fw-bold">{{ userData.fullName }}</h3>
             <p class="text-muted mb-4">{{ userData.email }}</p>
 
-            <div class="d-flex justify-content-center gap-2 mb-3">
+            <div class="d-flex justify-content-center gap-2 mb-4">
               <span class="badge bg-secondary px-3 py-2 fs-6 rounded-pill">
                 Rol: {{ userData.role || 'Usuario Estándar' }}
               </span>
             </div>
             
             <hr class="my-4 text-muted">
-            <p class="small text-muted">
+            <p class="small text-muted mb-0">
               Time Bank member since {{ (userData.createdAt | date:'longDate') || '2026' }}
             </p>
           }
         </div>
       </div>
 
+    </div>
+  </div>
+
+  @if (!isLoading && !errorMessage && userData) {
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        
+        <hr class="mb-5 text-muted">
+        <h3 class="fw-bold mb-4 text-center text-md-start">My Services</h3>
+        
+        <div class="btn-group mb-4 d-flex justify-content-center justify-content-md-start" role="group">
+          <button class="btn" [ngClass]="viewMode === 'active' ? 'btn-primary' : 'btn-outline-primary'" 
+                  (click)="viewMode = 'active'">Active Offers</button>
+          <button class="btn" [ngClass]="viewMode === 'history' ? 'btn-primary' : 'btn-outline-primary'" 
+                  (click)="viewMode = 'history'">Service History</button>
+        </div>
+
+        <div class="row g-4">
+          @for (service of filteredServices; track service.id) {
+            <div class="col-md-6 col-lg-4">
+              <div class="card h-100 shadow-sm border border-secondary-subtle rounded-4" [class.opacity-75]="viewMode === 'history'">
+                <div class="card-body p-4">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h4 class="card-title fw-bold text-primary mb-0">{{ service.title }}</h4>
+                    <span class="badge" [ngClass]="service.status === 'active' ? 'bg-success' : 'bg-secondary'">
+                      {{ service.status | uppercase }}
+                    </span>
+                  </div>
+                  
+                  <h6 class="text-success fw-bold mb-3"><i class="bi bi-coin"></i> {{ service.price }} TC</h6>
+                  <p class="card-text text-secondary">{{ service.description }}</p>
+                </div>
+
+                @if (viewMode === 'active') {
+                  <div class="card-footer bg-transparent border-0 pt-0 pb-4 px-4">
+                    <div class="d-flex gap-2">
+                      <button class="btn btn-warning flex-grow-1 fw-semibold" 
+                              (click)="openEditModal(service)"
+                              data-bs-toggle="modal" data-bs-target="#profileServiceModal">
+                        <i class="bi bi-pencil-square me-1"></i> Edit
+                      </button>
+                      <button class="btn btn-outline-danger" 
+                              (click)="openDeleteModal(service.id)"
+                              data-bs-toggle="modal" data-bs-target="#profileDeleteModal">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          } @empty {
+            <div class="col-12 text-center text-muted py-5 bg-light rounded-4 border border-dashed">
+              <i class="bi bi-inbox fs-1"></i>
+              <h5 class="fw-bold mt-3">No services found</h5>
+              <p>You don't have any services in this category yet.</p>
+            </div>
+          }
+        </div>
+
+        <div class="mt-5 text-center text-md-start" *ngIf="viewMode === 'history'">
+          <h4 class="text-secondary fw-bold">Consumed Services (From others)</h4>
+          <p class="small text-muted fst-italic">Future feature: Here you will see services you paid for.</p>
+        </div>
+
+      </div>
+    </div>
+  }
+
+</div>
+
+<div class="modal fade" id="profileServiceModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-warning border-0">
+        <h5 class="modal-title fw-bold text-dark">Edit Service</h5>
+        <button type="button" class="btn-close" id="closeProfileModalBtn" data-bs-dismiss="modal" (click)="resetForm()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form [formGroup]="serviceForm" (ngSubmit)="onSubmit()">
+          
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Service Title</label>
+            <input type="text" class="form-control" formControlName="title"
+                   [class.is-invalid]="serviceForm.get('title')?.invalid && serviceForm.get('title')?.touched">
+            <div class="invalid-feedback">A clear title is required (min. 5 characters).</div>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Price (Time Credits)</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-coin"></i></span>
+              <input type="number" class="form-control" formControlName="price"
+                     [class.is-invalid]="serviceForm.get('price')?.invalid && serviceForm.get('price')?.touched">
+              <span class="input-group-text">TC</span>
+            </div>
+            <div class="text-danger small mt-1" *ngIf="serviceForm.get('price')?.invalid && serviceForm.get('price')?.touched">
+              Price must be at least 1 TC.
+            </div>
+          </div>
+          
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Description</label>
+            <textarea class="form-control" rows="4" formControlName="description"
+                      [class.is-invalid]="serviceForm.get('description')?.invalid && serviceForm.get('description')?.touched"></textarea>
+            <div class="invalid-feedback">Please provide a detailed description (min. 10 characters).</div>
+          </div>
+          
+          <div class="d-grid">
+            <button type="submit" class="btn btn-warning fw-bold py-2 text-dark" [disabled]="isSubmitting">
+              @if (isSubmitting) {
+                <span class="spinner-border spinner-border-sm me-2"></span> Updating...
+              } @else {
+                Update Service
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="profileDeleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-danger text-white border-0">
+        <h5 class="modal-title fw-bold">Cancel Service</h5>
+        <button type="button" class="btn-close btn-close-white" id="closeProfileDeleteBtn" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4 text-center">
+        <i class="bi bi-exclamation-triangle text-danger display-1 mb-3"></i>
+        <h4 class="fw-bold">Are you absolutely sure?</h4>
+        <p class="text-muted">Do you really want to cancel this service? This action will remove it from the marketplace permanently.</p>
+      </div>
+      <div class="modal-footer justify-content-center border-0 pb-4">
+        <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal">No, keep it</button>
+        <button type="button" class="btn btn-danger fw-bold px-4" (click)="confirmDelete()">Yes, cancel it</button>
+      </div>
     </div>
   </div>
 </div>

@@ -83,4 +83,29 @@ login(credentials: any): Observable<any> {
   isAdmin(): boolean {
     return this.getRole() === 'admin';
   }
+
+getUserId(): string | null {
+    const token = this.getToken(); // <-- ¿Cómo se llama tu método para obtener el token?
+    console.log('Paso 1 - Token crudo:', token);
+
+    if (!token) {
+      console.log('Paso 2 - No hay token guardado.');
+      return null;
+    }
+    
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      console.log('Paso 3 - Payload completo del token:', payload);
+      
+      // Buscamos las propiedades más comunes. Si en el paso 3 ves que tu ID 
+      // tiene un nombre raro (ej. 'usuario_id'), añádelo aquí:
+      const miId = payload.id || payload.sub || payload.userId;
+      console.log('Paso 4 - ID final detectado:', miId);
+      
+      return miId;
+    } catch (e) {
+      console.error('Error descifrando el token:', e);
+      return null;
+    }
+  }
 }
