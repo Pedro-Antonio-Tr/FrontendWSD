@@ -1,22 +1,26 @@
 import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms'; // <-- Añadido
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth';
 import { ServiceMarketplaceService } from '../../../core/services/service.service';
+import { RequestService } from '../../../core/services/request.service';
 
 @Component({
   selector: 'app-user-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule], // <-- Importamos ReactiveFormsModule
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './user-profile.html',
   styleUrls: ['./user-profile.css']
 })
 export class UserProfile implements OnInit {
   userData: any = null;
   myOfferedServices: any[] = [];
+  myRequests: any[] = []; // <-- Nueva variable para los contratos
   isLoading: boolean = true;
   errorMessage: string = '';
-  viewMode: 'active' | 'history' = 'active';
+  
+  // Añadimos 'requests' a los modos de vista
+  viewMode: 'active' | 'history' | 'requests' = 'active';
 
   // Variables para Formularios y Modales
   serviceForm: FormGroup;
@@ -28,6 +32,7 @@ export class UserProfile implements OnInit {
   constructor(
     private authService: AuthService,
     private marketplaceService: ServiceMarketplaceService,
+    private requestService: RequestService, // <-- Inyectamos el servicio
     private fb: FormBuilder,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
@@ -55,13 +60,26 @@ export class UserProfile implements OnInit {
     this.marketplaceService.getMyServices().subscribe({
       next: (services) => {
         this.myOfferedServices = services;
-        this.isLoading = false;
+        this.checkLoadingCompletion();
       },
-      error: (error) => {
-        console.error('Error al cargar mis servicios', error);
-        this.isLoading = false;
-      }
+      error: (error) => console.error('Error al cargar mis servicios', error)
     });
+
+    // Cargamos también las peticiones
+    this.requestService.getMyRequests().subscribe({
+      next: (requests) => {
+        this.myRequests = requests;
+        this.checkLoadingCompletion();
+      },
+      error: (error) => console.error('Error al cargar mis peticiones', error)
+    });
+  }
+
+  // Pequeña función para quitar el loading solo cuando ambas listas carguen
+  private checkLoadingCompletion() {
+    if (this.myOfferedServices && this.myRequests) {
+      this.isLoading = false;
+    }
   }
 
   get filteredServices() {
@@ -71,8 +89,40 @@ export class UserProfile implements OnInit {
     return this.myOfferedServices.filter(s => s.status === 'completed');
   }
 
-  // --- LÓGICA DE EDICIÓN Y BORRADO ---
+  // --- FILTROS PARA LAS PETICIONES ---
+  get receivedRequests() {
+    // Peticiones donde YO soy el que da el servicio (Provider)
+    return this.myRequests.filter(req => req.provider.id === this.userData?.id);
+  }
 
+  get sentRequests() {
+    // Peticiones donde YO soy el que lo pide (Requester)
+    return this.myRequests.filter(req => req.requester.id === this.userData?.id);
+  }
+
+  // --- LÓGICA DE GESTIÓN DE PETICIONES ---
+  changeRequestStatus(requestId: string, newStatus: string): void {
+    if (newStatus === 'COMPLETED') {
+      if (!confirm('Are you sure you want to mark this as completed? This will process the payment.')) {
+        return;
+      }
+    }
+
+    this.requestService.updateRequestStatus(requestId, newStatus).subscribe({
+      next: () => {
+        alert(`Request status updated to ${newStatus}`);
+        this.cargarDatos(); // Recargamos para ver los cambios
+        
+        // Si se completó, actualizamos el perfil para que el Navbar refresque el saldo
+        if (newStatus === 'COMPLETED') {
+          this.authService.getProfile().subscribe();
+        }
+      },
+      error: (err) => alert(err.error?.message || 'Error updating status.')
+    });
+  }
+
+  // --- LÓGICA DE EDICIÓN Y BORRADO DE SERVICIOS (Igual que antes) ---
   openEditModal(service: any): void {
     this.isEditing = true;
     this.editingServiceId = service.id;
@@ -96,7 +146,7 @@ export class UserProfile implements OnInit {
     this.marketplaceService.updateService(this.editingServiceId, this.serviceForm.value).subscribe({
       next: () => {
         this.isSubmitting = false;
-        this.cargarDatos(); // Recargamos para ver los cambios
+        this.cargarDatos();
         document.getElementById('closeProfileModalBtn')?.click();
         this.resetForm();
       },

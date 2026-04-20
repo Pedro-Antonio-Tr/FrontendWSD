@@ -233,11 +233,10 @@
         
         <button type="button" class="btn btn-success fw-bold px-4 shadow-sm"
                 [disabled]="isBuying || !serviceToBuy || currentBalance < serviceToBuy.price"
-                (click)="confirmPurchase()">
-          @if (isBuying) {
-            <span class="spinner-border spinner-border-sm me-2"></span> Processing...
+                (click)="confirmRequest()">  @if (isBuying) {
+            <span class="spinner-border spinner-border-sm me-2"></span> Sending Request...
           } @else {
-            Confirm Payment
+            Send Request
           }
         </button>
       </div>

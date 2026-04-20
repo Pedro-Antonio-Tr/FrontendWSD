@@ -3,7 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms'; 
 import { ServiceMarketplaceService } from '../../core/services/service.service';
 import { AuthService } from '../../core/services/auth';
-import { TransactionService } from '../../core/services/transaction.service';
+import { RequestService } from '../../core/services/request.service';
 
 @Component({
   selector: 'app-marketplace',
@@ -32,7 +32,7 @@ export class MarketplaceComponent implements OnInit {
   constructor(
     private marketplaceService: ServiceMarketplaceService,
     private authService: AuthService,
-    private transactionService: TransactionService, 
+    private requestService: RequestService,
     private fb: FormBuilder,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
@@ -96,35 +96,26 @@ export class MarketplaceComponent implements OnInit {
     this.serviceToBuy = service;
   }
 
-  confirmPurchase(): void {
+confirmRequest(): void {
     if (!this.serviceToBuy) return;
     this.isBuying = true;
 
-    // Preparamos los datos tal y como los pide el backend
-    const transactionData = {
-      receiverId: this.serviceToBuy.provider.id,
-      serviceId: this.serviceToBuy.id,
-      amount: this.serviceToBuy.price,
-      concept: `Payment for: ${this.serviceToBuy.title}`
-    };
-
-    this.transactionService.transferCredits(transactionData).subscribe({
+    // Ahora solo enviamos el ID del servicio. El backend ya sabe quiénes somos gracias al Token.
+    this.requestService.createRequest(this.serviceToBuy.id).subscribe({
       next: () => {
         this.isBuying = false;
-        alert('¡Servicio contratado con éxito!');
-        
+        // ¡Mensaje cambiado!
+        alert('¡Petición enviada! El proveedor debe aceptarla.');
+
         // Cerramos el modal
         document.getElementById('closeBuyModalBtn')?.click();
 
-        // Actualizamos el perfil para que el Navbar reaccione al nuevo saldo
-        this.authService.getProfile().subscribe(); 
-        
-        // Recargamos el tablón de anuncios
+        // Recargamos los servicios
         this.cargarServicios(); 
       },
       error: (err) => {
         this.isBuying = false;
-        alert(err.error?.message || 'Error al procesar el pago. Revisa tu saldo.');
+        alert(err.error?.message || 'Error al enviar la petición.');
       }
     });
   }
