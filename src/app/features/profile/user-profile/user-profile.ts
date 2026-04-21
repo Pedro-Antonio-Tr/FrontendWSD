@@ -94,11 +94,17 @@ export class UserProfile implements OnInit {
   }
 
   get receivedRequests() {
-    return this.myRequests.filter(req => req.provider.id === this.userData?.id);
+    return this.myRequests.filter(req => 
+      req.provider.id === this.userData?.id && 
+      req.status !== 'COMPLETED'
+    );
   }
 
   get sentRequests() {
-    return this.myRequests.filter(req => req.requester.id === this.userData?.id);
+    return this.myRequests.filter(req => 
+      req.requester.id === this.userData?.id && 
+      req.status !== 'COMPLETED'
+    );
   }
 
   changeRequestStatus(requestId: string, newStatus: string): void {
