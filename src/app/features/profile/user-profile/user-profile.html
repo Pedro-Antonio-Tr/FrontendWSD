@@ -65,15 +65,15 @@
                   (click)="viewMode = 'history'">Service History</button>
         </div>
 
-        @if (viewMode === 'active' || viewMode === 'history') {
+        @if (viewMode === 'active') {
           <div class="row g-4">
             @for (service of filteredServices; track service.id) {
               <div class="col-md-6 col-lg-4">
-                <div class="card h-100 shadow-sm border border-secondary-subtle rounded-4" [class.opacity-75]="viewMode === 'history'">
+                <div class="card h-100 shadow-sm border border-secondary-subtle rounded-4">
                   <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                       <h4 class="card-title fw-bold text-primary mb-0">{{ service.title }}</h4>
-                      <span class="badge" [ngClass]="service.status === 'active' ? 'bg-success' : 'bg-secondary'">
+                      <span class="badge bg-success">
                         {{ service.status | uppercase }}
                       </span>
                     </div>
@@ -82,31 +82,72 @@
                     <p class="card-text text-secondary">{{ service.description }}</p>
                   </div>
 
-                  @if (viewMode === 'active') {
-                    <div class="card-footer bg-transparent border-0 pt-0 pb-4 px-4">
-                      <div class="d-flex gap-2">
-                        <button class="btn btn-warning flex-grow-1 fw-semibold" 
-                                (click)="openEditModal(service)"
-                                data-bs-toggle="modal" data-bs-target="#profileServiceModal">
-                          <i class="bi bi-pencil-square me-1"></i> Edit
-                        </button>
-                        <button class="btn btn-outline-danger" 
-                                (click)="openDeleteModal(service.id)"
-                                data-bs-toggle="modal" data-bs-target="#profileDeleteModal">
-                          <i class="bi bi-trash"></i>
-                        </button>
-                      </div>
+                  <div class="card-footer bg-transparent border-0 pt-0 pb-4 px-4">
+                    <div class="d-flex gap-2">
+                      <button class="btn btn-warning flex-grow-1 fw-semibold" 
+                              (click)="openEditModal(service)"
+                              data-bs-toggle="modal" data-bs-target="#profileServiceModal">
+                        <i class="bi bi-pencil-square me-1"></i> Edit
+                      </button>
+                      <button class="btn btn-outline-danger" 
+                              (click)="openDeleteModal(service.id)"
+                              data-bs-toggle="modal" data-bs-target="#profileDeleteModal">
+                        <i class="bi bi-trash"></i>
+                      </button>
                     </div>
-                  }
+                  </div>
                 </div>
               </div>
             } @empty {
               <div class="col-12 text-center text-muted py-5 bg-light rounded-4 border border-dashed">
                 <i class="bi bi-inbox fs-1"></i>
-                <h5 class="fw-bold mt-3">No services found</h5>
-                <p>You don't have any services in this category yet.</p>
+                <h5 class="fw-bold mt-3">No active offers</h5>
+                <p>You don't have any active services at the moment.</p>
               </div>
             }
+          </div>
+        }
+
+        @if (viewMode === 'history') {
+          <div class="row justify-content-center">
+            <div class="col-lg-10">
+              <h5 class="fw-bold text-dark border-bottom pb-2 mb-4">
+                <i class="bi bi-receipt text-secondary me-2"></i> Transaction History
+              </h5>
+
+              <div class="list-group">
+                @for (tx of myHistory; track tx.id) {
+                  <div class="list-group-item list-group-item-action p-4 mb-2 border rounded-4 shadow-sm"
+                       [ngClass]="tx.sender.id === userData?.id ? 'border-danger border-start-4' : 'border-success border-start-4'">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <h6 class="fw-bold mb-0 text-dark">{{ tx.concept }}</h6>
+                      
+                      <h5 class="fw-bold mb-0" [ngClass]="tx.sender.id === userData?.id ? 'text-danger' : 'text-success'">
+                        {{ tx.sender.id === userData?.id ? '-' : '+' }}{{ tx.amount }} TC
+                      </h5>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-end text-muted small">
+                      <span>
+                        <i class="bi bi-person-circle me-1"></i>
+                        @if (tx.sender.id === userData?.id) {
+                          Paid to: <strong class="text-dark">{{ tx.receiver.fullName }}</strong>
+                        } @else {
+                          Received from: <strong class="text-dark">{{ tx.sender.fullName }}</strong>
+                        }
+                      </span>
+                      <span><i class="bi bi-clock me-1"></i> {{ tx.createdAt | date:'medium' }}</span>
+                    </div>
+                  </div>
+                } @empty {
+                  <div class="text-center py-5 bg-light rounded-4 border border-dashed">
+                    <i class="bi bi-wallet2 display-4 text-muted"></i>
+                    <h5 class="fw-bold mt-3 text-secondary">No transaction history</h5>
+                    <p class="text-muted">Completed service payments will appear here.</p>
+                  </div>
+                }
+              </div>
+            </div>
           </div>
         }
 

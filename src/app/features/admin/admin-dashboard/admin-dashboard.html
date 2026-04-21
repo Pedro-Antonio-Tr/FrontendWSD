@@ -1,86 +1,196 @@
 <div class="container mt-5 mb-5">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold m-0">Administration Panel</h2>
-    <button class="btn btn-outline-secondary">Export Data</button>
+    <button class="btn btn-outline-secondary"><i class="bi bi-download"></i> Export Data</button>
   </div>
 
   <div class="row mb-4">
     <div class="col-md-4">
       <div class="card text-white bg-primary shadow-sm rounded-4 border-0 mb-3 hover-lift">
-        <div class="card-body p-4">
-          <h5 class="card-title fw-semibold">Registered Users</h5>
-          <h2 class="display-4 fw-bold mb-0">{{ stats.totalUsers }}</h2>
+        <div class="card-body p-4 d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="card-title fw-semibold text-white-50">Registered Users</h5>
+            <h2 class="display-5 fw-bold mb-0">{{ stats.totalUsers }}</h2>
+          </div>
+          <i class="bi bi-people display-4 opacity-50"></i>
         </div>
       </div>
     </div>
     
     <div class="col-md-4">
       <div class="card text-white bg-success shadow-sm rounded-4 border-0 mb-3 hover-lift">
-        <div class="card-body p-4">
-          <h5 class="card-title fw-semibold">Active Services</h5>
-          <h2 class="display-4 fw-bold mb-0">{{ stats.totalServices }}</h2>
+        <div class="card-body p-4 d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="card-title fw-semibold text-white-50">Active Services</h5>
+            <h2 class="display-5 fw-bold mb-0">{{ stats.totalServices }}</h2>
+          </div>
+          <i class="bi bi-tags display-4 opacity-50"></i>
         </div>
       </div>
     </div>
     
     <div class="col-md-4">
       <div class="card text-white bg-info shadow-sm rounded-4 border-0 mb-3 hover-lift">
-        <div class="card-body p-4">
-          <h5 class="card-title fw-semibold text-dark">Exchanges Completed</h5>
-          <h2 class="display-4 fw-bold text-dark mb-0">{{ stats.totalExchanges }}</h2>
+        <div class="card-body p-4 d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="card-title fw-semibold text-dark opacity-75">Exchanges Completed</h5>
+            <h2 class="display-5 fw-bold text-dark mb-0">{{ stats.totalExchanges }}</h2>
+          </div>
+          <i class="bi bi-check-circle display-4 opacity-50 text-dark"></i>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="card shadow-sm border-0 rounded-4 mt-2">
+  <ul class="nav nav-pills mb-4 bg-white p-2 rounded-pill shadow-sm border">
+    <li class="nav-item">
+      <button class="nav-link rounded-pill fw-bold px-4" [class.active]="activeTab === 'users'" (click)="activeTab = 'users'">
+        <i class="bi bi-people-fill me-1"></i> Users
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link rounded-pill fw-bold px-4" [class.active]="activeTab === 'services'" (click)="activeTab = 'services'">
+        <i class="bi bi-shop me-1"></i> Marketplace
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link rounded-pill fw-bold px-4" [class.active]="activeTab === 'requests'" (click)="activeTab = 'requests'">
+        <i class="bi bi-envelope-paper-fill me-1"></i> Requests
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link rounded-pill fw-bold px-4" [class.active]="activeTab === 'transactions'" (click)="activeTab = 'transactions'">
+        <i class="bi bi-cash-stack me-1"></i> Economy
+      </button>
+    </li>
+  </ul>
+
+  <div class="card shadow-sm border-0 rounded-4">
     <div class="card-body p-4">
-      <h5 class="fw-bold mb-4">Recent User Management</h5>
       
-      <div class="table-responsive">
-        <table class="table table-hover align-middle">
-          <thead class="table-light">
-            <tr>
-              <th scope="col" class="text-muted">ID</th>
-              <th scope="col" class="text-muted">Name</th>
-              <th scope="col" class="text-muted">Email</th>
-              <th scope="col" class="text-muted">Status</th>
-              <th scope="col" class="text-muted text-end">Actions</th>
-            </tr>
-          </thead>
+      @if (activeTab === 'users') {
+        <h5 class="fw-bold mb-4">User Management</h5>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th class="text-muted">Name</th>
+                <th class="text-muted">Email</th>
+                <th class="text-muted">Balance</th>
+                <th class="text-muted">Status</th>
+                <th class="text-end text-muted">Action</th>
+              </tr>
+            </thead>
             <tbody>
-              @for (user of recentUsers; track user.id) {
+              @for (user of users; track user.id) {
                 <tr>
-                  <td class="fw-semibold text-secondary" title="{{ user.id }}">#{{ user.id | slice:0:8 }}...</td>
-                  
                   <td class="fw-bold">{{ user.fullName }}</td>
-                  
                   <td>{{ user.email }}</td>
-                  
+                  <td class="fw-semibold text-success">{{ user.balance }} TC</td>
                   <td>
-                    <span class="badge rounded-pill" 
-                          [class.bg-success]="user.isActive" 
-                          [class.bg-danger]="!user.isActive">
+                    <span class="badge rounded-pill" [class.bg-success]="user.isActive" [class.bg-danger]="!user.isActive">
                       {{ user.isActive ? 'Active' : 'Blocked' }}
                     </span>
                   </td>
-                  
                   <td class="text-end">
-                    <button class="btn btn-sm btn-light border me-2">Edit</button>
-                    
-                    <button class="btn btn-sm" 
-                            [class.btn-outline-danger]="user.isActive"
-                            [class.btn-outline-success]="!user.isActive"
-                            (click)="cambiarEstado(user.id)">
+                    <button class="btn btn-sm" [class.btn-outline-danger]="user.isActive" [class.btn-outline-success]="!user.isActive" (click)="cambiarEstado(user.id)">
                       {{ user.isActive ? 'Block' : 'Unlock' }}
                     </button>
                   </td>
                 </tr>
               }
             </tbody>
-        </table>
-      </div>
-      
+          </table>
+        </div>
+      }
+
+      @if (activeTab === 'services') {
+        <h5 class="fw-bold mb-4">Marketplace Moderation</h5>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th class="text-muted">Title</th>
+                <th class="text-muted">Provider</th>
+                <th class="text-muted">Price</th>
+                <th class="text-end text-muted">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (service of services; track service.id) {
+                <tr>
+                  <td class="fw-bold">{{ service.title }}</td>
+                  <td>{{ service.provider.fullName }}</td>
+                  <td class="fw-semibold text-primary">{{ service.price }} TC</td>
+                  <td class="text-end">
+                    <button class="btn btn-sm btn-danger" (click)="deleteService(service.id)">Delete</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (activeTab === 'requests') {
+        <h5 class="fw-bold mb-4">All Service Requests</h5>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th class="text-muted">Service</th>
+                <th class="text-muted">Requester</th>
+                <th class="text-muted">Provider</th>
+                <th class="text-muted">Price</th>
+                <th class="text-end text-muted">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (req of requests; track req.id) {
+                <tr>
+                  <td class="fw-bold">{{ req.service.title }}</td>
+                  <td>{{ req.requester.fullName }}</td>
+                  <td>{{ req.provider.fullName }}</td>
+                  <td class="fw-semibold text-secondary">{{ req.agreedPrice }} TC</td>
+                  <td class="text-end fw-bold" 
+                      [ngClass]="{'text-warning': req.status === 'PENDING', 'text-success': req.status === 'COMPLETED', 'text-danger': req.status === 'CANCELLED' || req.status === 'REJECTED'}">
+                    {{ req.status }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (activeTab === 'transactions') {
+        <h5 class="fw-bold mb-4">Global Economy Flow</h5>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th class="text-muted">Date</th>
+                <th class="text-muted">From</th>
+                <th class="text-muted">To</th>
+                <th class="text-muted">Amount</th>
+                <th class="text-end text-muted">Concept</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (tx of transactions; track tx.id) {
+                <tr>
+                  <td>{{ tx.createdAt | date:'short' }}</td>
+                  <td class="text-danger fw-semibold">{{ tx.sender.fullName }}</td>
+                  <td class="text-success fw-semibold">{{ tx.receiver.fullName }}</td>
+                  <td class="fw-bold">{{ tx.amount }} TC</td>
+                  <td class="text-end text-muted small">{{ tx.concept }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
     </div>
   </div>
 </div>

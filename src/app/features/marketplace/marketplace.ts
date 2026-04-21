@@ -16,8 +16,7 @@ export class MarketplaceComponent implements OnInit {
   services: any[] = [];
   isLoading: boolean = true;
   currentUserId: string | null = null;
-  
-  // --- VARIABLES PARA EL SALDO Y COMPRA ---
+
   currentBalance: number = 0;
   serviceToBuy: any = null;
   isBuying: boolean = false;
@@ -28,6 +27,10 @@ export class MarketplaceComponent implements OnInit {
   editingServiceId: string | null = null;
   serviceToDelete: string | null = null;
   filterForm: FormGroup;
+  
+  get isAdmin(): boolean {
+    return this.authService.isAdmin();
+  } 
 
   constructor(
     private marketplaceService: ServiceMarketplaceService,
@@ -52,7 +55,6 @@ export class MarketplaceComponent implements OnInit {
       this.cargarUsuarioActual();
       this.cargarServicios();
       
-      // Escuchamos el saldo en tiempo real para usarlo en el modal de compra
       this.authService.currentBalance$.subscribe(balance => {
         if (balance !== null) {
           this.currentBalance = balance;
@@ -91,7 +93,6 @@ export class MarketplaceComponent implements OnInit {
     });
   }
 
-  // --- LÓGICA DE COMPRA ---
   openBuyModal(service: any): void {
     this.serviceToBuy = service;
   }
@@ -100,17 +101,13 @@ confirmRequest(): void {
     if (!this.serviceToBuy) return;
     this.isBuying = true;
 
-    // Ahora solo enviamos el ID del servicio. El backend ya sabe quiénes somos gracias al Token.
     this.requestService.createRequest(this.serviceToBuy.id).subscribe({
       next: () => {
         this.isBuying = false;
-        // ¡Mensaje cambiado!
         alert('¡Petición enviada! El proveedor debe aceptarla.');
 
-        // Cerramos el modal
         document.getElementById('closeBuyModalBtn')?.click();
 
-        // Recargamos los servicios
         this.cargarServicios(); 
       },
       error: (err) => {
@@ -120,7 +117,6 @@ confirmRequest(): void {
     });
   }
 
-  // --- LÓGICA DE GESTIÓN PROPIA (EDITAR / BORRAR) ---
   openEditModal(service: any): void {
     this.isEditing = true;
     this.editingServiceId = service.id;

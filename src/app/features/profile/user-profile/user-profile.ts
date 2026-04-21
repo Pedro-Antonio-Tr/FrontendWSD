@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { AuthService } from '../../../core/services/auth';
 import { ServiceMarketplaceService } from '../../../core/services/service.service';
 import { RequestService } from '../../../core/services/request.service';
+import { TransactionService } from '../../../core/services/transaction.service';
 
 @Component({
   selector: 'app-user-profile',
@@ -15,14 +16,13 @@ import { RequestService } from '../../../core/services/request.service';
 export class UserProfile implements OnInit {
   userData: any = null;
   myOfferedServices: any[] = [];
-  myRequests: any[] = []; // <-- Nueva variable para los contratos
+  myRequests: any[] = [];
   isLoading: boolean = true;
   errorMessage: string = '';
+  myHistory: any[] = [];
   
-  // Añadimos 'requests' a los modos de vista
   viewMode: 'active' | 'history' | 'requests' = 'active';
 
-  // Variables para Formularios y Modales
   serviceForm: FormGroup;
   isSubmitting: boolean = false;
   isEditing: boolean = false;
@@ -32,7 +32,8 @@ export class UserProfile implements OnInit {
   constructor(
     private authService: AuthService,
     private marketplaceService: ServiceMarketplaceService,
-    private requestService: RequestService, // <-- Inyectamos el servicio
+    private requestService: RequestService,
+    private transactionService: TransactionService,
     private fb: FormBuilder,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
@@ -65,7 +66,6 @@ export class UserProfile implements OnInit {
       error: (error) => console.error('Error al cargar mis servicios', error)
     });
 
-    // Cargamos también las peticiones
     this.requestService.getMyRequests().subscribe({
       next: (requests) => {
         this.myRequests = requests;
@@ -73,34 +73,34 @@ export class UserProfile implements OnInit {
       },
       error: (error) => console.error('Error al cargar mis peticiones', error)
     });
+
+    this.transactionService.getHistory().subscribe({
+      next: (history) => {
+        this.myHistory = history;
+        this.checkLoadingCompletion();
+      },
+      error: (error) => console.error('Error al cargar el historial', error)
+    });
   }
 
-  // Pequeña función para quitar el loading solo cuando ambas listas carguen
   private checkLoadingCompletion() {
-    if (this.myOfferedServices && this.myRequests) {
+    if (this.myOfferedServices && this.myRequests && this.myHistory) {
       this.isLoading = false;
     }
   }
 
   get filteredServices() {
-    if (this.viewMode === 'active') {
-      return this.myOfferedServices.filter(s => s.status === 'active');
-    }
-    return this.myOfferedServices.filter(s => s.status === 'completed');
+    return this.myOfferedServices.filter(s => s.status === 'active');
   }
 
-  // --- FILTROS PARA LAS PETICIONES ---
   get receivedRequests() {
-    // Peticiones donde YO soy el que da el servicio (Provider)
     return this.myRequests.filter(req => req.provider.id === this.userData?.id);
   }
 
   get sentRequests() {
-    // Peticiones donde YO soy el que lo pide (Requester)
     return this.myRequests.filter(req => req.requester.id === this.userData?.id);
   }
 
-  // --- LÓGICA DE GESTIÓN DE PETICIONES ---
   changeRequestStatus(requestId: string, newStatus: string): void {
     if (newStatus === 'COMPLETED') {
       if (!confirm('Are you sure you want to mark this as completed? This will process the payment.')) {
@@ -112,7 +112,6 @@ export class UserProfile implements OnInit {
       next: () => {
         alert(`Request status updated to ${newStatus}`);
         this.cargarDatos(); // Recargamos para ver los cambios
-        
         // Si se completó, actualizamos el perfil para que el Navbar refresque el saldo
         if (newStatus === 'COMPLETED') {
           this.authService.getProfile().subscribe();
@@ -122,7 +121,6 @@ export class UserProfile implements OnInit {
     });
   }
 
-  // --- LÓGICA DE EDICIÓN Y BORRADO DE SERVICIOS (Igual que antes) ---
   openEditModal(service: any): void {
     this.isEditing = true;
     this.editingServiceId = service.id;
