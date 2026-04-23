@@ -1,7 +1,7 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { isPlatformBrowser } from '@angular/common';
-import { Observable, BehaviorSubject } from 'rxjs'; // <-- AÑADIMOS BehaviorSubject
+import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
 @Injectable({
@@ -11,10 +11,7 @@ export class AuthService {
   private apiUrl = 'http://localhost:3000/api/auth';
   private tokenKey = 'timebank_jwt_token';
 
-  // --- EL MEGÁFONO DEL SALDO ---
-  // Creamos el BehaviorSubject que guardará el saldo en memoria. Empezamos en null.
   private balanceSubject = new BehaviorSubject<number | null>(null);
-  // Esta es la variable pública a la que los componentes (Navbar, Modal) se van a suscribir
   public currentBalance$ = this.balanceSubject.asObservable(); 
 
   constructor(
@@ -37,11 +34,9 @@ export class AuthService {
     );
   }
 
-  // Obtiene los datos del perfil y AVISA AL MEGÁFONO del nuevo saldo
   getProfile(): Observable<any> {
     return this.http.get('http://localhost:3000/api/users/me').pipe(
       tap((data: any) => {
-        // Si nos llega el perfil y tiene un balance, lo emitimos a todos los que escuchan
         if (data && data.balance !== undefined) {
           this.balanceSubject.next(data.balance);
         }
@@ -53,7 +48,6 @@ export class AuthService {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem(this.tokenKey);
     }
-    // Cuando cerramos sesión, vaciamos el megáfono por seguridad
     this.balanceSubject.next(null);
   }
 

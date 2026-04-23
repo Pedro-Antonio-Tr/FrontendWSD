@@ -11,7 +11,6 @@ import { AuthService } from '../../../core/services/auth'; // Tu servicio
   styleUrls: ['./register.css']
 })
 export class Register {
-  // Definimos el formulario y sus validaciones
   registerForm = new FormGroup({
     name: new FormControl('', [Validators.required, Validators.minLength(3)]),
     email: new FormControl('', [Validators.required, Validators.email]),
@@ -31,17 +30,14 @@ onSubmit() {
         return; 
       }
       
-      // 2. Extraemos los valores del formulario
       const formValues = this.registerForm.value;
 
-      // 3. TRADUCCIÓN: Empaquetamos los datos exactamente como los pide el backend (DTO)
       const userDataForBackend = {
-        fullName: formValues.name, // Convertimos tu 'name' al 'fullName' del backend
+        fullName: formValues.name,
         email: formValues.email,
         password: formValues.password
       };
 
-      // 4. Enviamos los datos adaptados al backend
       this.authService.register(userDataForBackend).subscribe({
         next: (response) => {
           console.log('Registration successful!', response);

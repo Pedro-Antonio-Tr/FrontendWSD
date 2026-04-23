@@ -29,15 +29,12 @@ export class Navbar implements OnInit {
 
   ngOnInit() {
     if (this.isLoggedIn) {
-      // 1. Nos ponemos los "auriculares": escuchamos los cambios de saldo en tiempo real
       this.authService.currentBalance$.subscribe(balance => {
-        // Si hay un saldo válido (no es null), actualizamos el numerito visual
         if (balance !== null) {
           this.userBalance = balance;
         }
       });
       
-      // 2. Pedimos los datos al backend la primera vez para que el "megáfono" empiece a gritar
       this.authService.getProfile().subscribe();
     }
   }
