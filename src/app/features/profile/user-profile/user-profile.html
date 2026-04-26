@@ -40,6 +40,32 @@
             <p class="small text-muted mb-0">
               Time Bank member since {{ (userData.createdAt | date:'longDate') || '2026' }}
             </p>
+            
+            <div class="mt-4 p-4 bg-light rounded-4 border border-secondary-subtle shadow-sm">
+            <h5 class="fw-bold mb-2"><i class="bi bi-wallet2 text-primary me-2"></i>My Wallet</h5>
+            <p class="text-muted small mb-3">Recharge your Time Credits securely using Stripe.</p>
+            
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+              <button class="btn btn-outline-primary rounded-pill fw-bold px-4" 
+                      (click)="rechargeBalance(10)" [disabled]="isRecharging">
+                +10 TC
+              </button>
+              <button class="btn btn-outline-success rounded-pill fw-bold px-4" 
+                      (click)="rechargeBalance(50)" [disabled]="isRecharging">
+                +50 TC
+              </button>
+              <button class="btn btn-primary rounded-pill fw-bold shadow-sm px-4" 
+                      (click)="rechargeBalance(100)" [disabled]="isRecharging">
+                <i class="bi bi-star-fill text-warning me-1"></i> +100 TC
+              </button>
+            </div>
+
+            @if (isRecharging) {
+              <div class="text-center mt-3 text-primary small fw-semibold">
+                <span class="spinner-border spinner-border-sm me-2"></span> Redirecting to secure checkout...
+              </div>
+            }
+          </div>
           }
         </div>
       </div>

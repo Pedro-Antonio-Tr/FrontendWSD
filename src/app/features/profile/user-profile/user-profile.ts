@@ -5,6 +5,8 @@ import { AuthService } from '../../../core/services/auth';
 import { ServiceMarketplaceService } from '../../../core/services/service.service';
 import { RequestService } from '../../../core/services/request.service';
 import { TransactionService } from '../../../core/services/transaction.service';
+import { PaymentService } from '../../../core/services/payment.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-user-profile',
@@ -34,6 +36,9 @@ export class UserProfile implements OnInit {
     private marketplaceService: ServiceMarketplaceService,
     private requestService: RequestService,
     private transactionService: TransactionService,
+    private paymentService: PaymentService,
+    private route: ActivatedRoute, 
+    private router: Router,        
     private fb: FormBuilder,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
@@ -46,7 +51,24 @@ export class UserProfile implements OnInit {
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.cargarDatos();
+      
+      // MIRAMOS SI VENIMOS DE STRIPE
+      this.route.queryParams.subscribe(params => {
+        if (params['session_id']) {
+          this.paymentService.verifyPayment(params['session_id']).subscribe({
+            next: (res) => {
+              alert('¡Pago completado! ' + res.message);
+              // Limpiamos la URL para no volver a cobrar si el usuario recarga la página
+              this.router.navigate(['/profile'], { replaceUrl: true });
+              this.cargarDatos(); 
+            },
+            error: (err) => alert('Error verificando el pago')
+          });
+        } else {
+          this.cargarDatos();
+        }
+      });
+
     } else {
       this.isLoading = false;
     }
@@ -80,6 +102,23 @@ export class UserProfile implements OnInit {
         this.checkLoadingCompletion();
       },
       error: (error) => console.error('Error al cargar el historial', error)
+    });
+  }
+
+  isRecharging: boolean = false;
+
+  rechargeBalance(amount: number): void {
+    this.isRecharging = true;
+    this.paymentService.createCheckoutSession(amount).subscribe({
+      next: (response) => {
+        // Redirigir al usuario a la página de pago oficial de Stripe
+        window.location.href = response.checkoutUrl;
+      },
+      error: (err) => {
+        console.error('Error al iniciar el pago', err);
+        alert('Hubo un error al conectar con la pasarela de pago.');
+        this.isRecharging = false;
+      }
     });
   }
 
