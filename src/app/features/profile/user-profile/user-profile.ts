@@ -1,3 +1,4 @@
+import { ReviewService } from '../../../core/services/review.service';
 import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -7,11 +8,12 @@ import { RequestService } from '../../../core/services/request.service';
 import { TransactionService } from '../../../core/services/transaction.service';
 import { PaymentService } from '../../../core/services/payment.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-user-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './user-profile.html',
   styleUrls: ['./user-profile.css']
 })
@@ -22,6 +24,12 @@ export class UserProfile implements OnInit {
   isLoading: boolean = true;
   errorMessage: string = '';
   myHistory: any[] = [];
+  
+  // Variables para el sistema de reviews
+  isReviewing = false;
+  currentRating = 5;
+  reviewComment = '';
+  selectedRequest: any = null;
   
   viewMode: 'active' | 'history' | 'requests' = 'active';
 
@@ -37,6 +45,7 @@ export class UserProfile implements OnInit {
     private requestService: RequestService,
     private transactionService: TransactionService,
     private paymentService: PaymentService,
+    private reviewService: ReviewService,
     private route: ActivatedRoute, 
     private router: Router,        
     private fb: FormBuilder,
@@ -133,17 +142,14 @@ export class UserProfile implements OnInit {
   }
 
   get receivedRequests() {
-    return this.myRequests.filter(req => 
-      req.provider.id === this.userData?.id && 
-      req.status !== 'COMPLETED'
-    );
+  if (!this.userData) return [];
+  return this.myRequests.filter(req => req.provider.id === this.userData.id);
   }
 
+  
   get sentRequests() {
-    return this.myRequests.filter(req => 
-      req.requester.id === this.userData?.id && 
-      req.status !== 'COMPLETED'
-    );
+    if (!this.userData) return [];
+    return this.myRequests.filter(req => req.requester.id === this.userData.id);
   }
 
   changeRequestStatus(requestId: string, newStatus: string): void {
@@ -215,6 +221,39 @@ export class UserProfile implements OnInit {
         document.getElementById('closeProfileDeleteBtn')?.click(); 
       },
       error: (err) => console.error('Error al borrar', err)
+    });
+  }
+
+  openReviewModal(request: any) {
+  this.selectedRequest = request;
+  this.isReviewing = true;
+  this.currentRating = 5; // Valor por defecto
+  this.reviewComment = ''; // Limpiamos el comentario anterior
+}
+
+  setRating(stars: number) {
+    this.currentRating = stars;
+  }
+
+  submitReview() {
+    if (!this.selectedRequest) return;
+
+    if (this.reviewComment.length < 5) {
+      alert('Please write a slightly longer comment (min. 5 characters).');
+      return;
+    }
+
+    this.reviewService.createReview(this.selectedRequest.id, this.currentRating, this.reviewComment).subscribe({
+      next: () => {
+        alert('⭐ Review saved successfully!');
+        this.isReviewing = false;
+        this.selectedRequest = null;
+        this.cargarDatos(); // Esto refresca la lista y hará que el botón cambie a "Already Rated"
+      },
+      error: (err) => {
+        console.error(err);
+        alert(err.error?.message || 'Error saving review');
+      }
     });
   }
 }

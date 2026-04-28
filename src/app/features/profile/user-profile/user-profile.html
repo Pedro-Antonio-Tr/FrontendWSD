@@ -254,7 +254,22 @@
                       @if (req.status === 'PENDING') {
                         <button class="btn btn-sm btn-outline-danger" (click)="changeRequestStatus(req.id, 'CANCELLED')">Cancel Request</button>
                       }
-                    </div>
+
+                      @if (req.status === 'COMPLETED') {
+                        <button 
+                          class="btn btn-sm fw-bold shadow-sm" 
+                          [disabled]="req.review"
+                          [ngClass]="req.review ? 'btn-secondary' : 'btn-warning'"
+                          (click)="openReviewModal(req)">
+                          
+                          @if (req.review) {
+                            <i class="bi bi-check-circle-fill me-1"></i> Already Rated
+                          } @else {
+                            <i class="bi bi-star-fill me-1"></i> Rate Service
+                          }
+                        </button>
+                      }
+                      </div>
                   </div>
                 </div>
               } @empty {
@@ -263,6 +278,40 @@
             </div>
             
           </div>
+
+          @if (isReviewing) {
+          <div class="card mt-4 border-warning shadow animate__animated animate__fadeInUp">
+            <div class="card-header bg-warning text-dark fw-bold">
+              <i class="bi bi-star-half me-2"></i> How was "{{ selectedRequest?.service?.title }}"?
+            </div>
+            <div class="card-body">
+              <p class="text-muted small">Select your rating and leave a brief comment about the service received.</p>
+              
+              <div class="mb-3 d-flex align-items-center">
+                <div class="fs-2 me-3">
+                  @for (star of [1, 2, 3, 4, 5]; track star) {
+                    <span (click)="setRating(star)" style="cursor: pointer;">
+                      <i class="bi" 
+                         [ngClass]="star <= currentRating ? 'bi-star-fill text-warning' : 'bi-star text-muted'"></i>
+                    </span>
+                  }
+                </div>
+                <span class="badge bg-dark fs-6">{{ currentRating }} / 5</span>
+              </div>
+
+              <textarea 
+                class="form-control mb-3" 
+                [(ngModel)]="reviewComment" 
+                placeholder="Share your experience with the community..."
+                rows="3"></textarea>
+
+              <div class="d-flex gap-2">
+                <button class="btn btn-primary px-4" (click)="submitReview()">Submit Review</button>
+                <button class="btn btn-light px-4" (click)="isReviewing = false">Cancel</button>
+              </div>
+            </div>
+          </div>
+        }
         }
 
       </div>
