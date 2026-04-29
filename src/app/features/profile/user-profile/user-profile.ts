@@ -61,13 +61,11 @@ export class UserProfile implements OnInit {
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       
-      // MIRAMOS SI VENIMOS DE STRIPE
       this.route.queryParams.subscribe(params => {
         if (params['session_id']) {
           this.paymentService.verifyPayment(params['session_id']).subscribe({
             next: (res) => {
               alert('¡Pago completado! ' + res.message);
-              // Limpiamos la URL para no volver a cobrar si el usuario recarga la página
               this.router.navigate(['/profile'], { replaceUrl: true });
               this.cargarDatos(); 
             },
@@ -120,7 +118,6 @@ export class UserProfile implements OnInit {
     this.isRecharging = true;
     this.paymentService.createCheckoutSession(amount).subscribe({
       next: (response) => {
-        // Redirigir al usuario a la página de pago oficial de Stripe
         window.location.href = response.checkoutUrl;
       },
       error: (err) => {
@@ -162,8 +159,7 @@ export class UserProfile implements OnInit {
     this.requestService.updateRequestStatus(requestId, newStatus).subscribe({
       next: () => {
         alert(`Request status updated to ${newStatus}`);
-        this.cargarDatos(); // Recargamos para ver los cambios
-        // Si se completó, actualizamos el perfil para que el Navbar refresque el saldo
+        this.cargarDatos();
         if (newStatus === 'COMPLETED') {
           this.authService.getProfile().subscribe();
         }
