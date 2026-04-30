@@ -10,13 +10,23 @@ export class ReviewService {
 
   constructor(private http: HttpClient) {}
 
-  // Enviar la reseña al backend
   createReview(requestId: string, rating: number, comment: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/${requestId}`, { rating, comment });
   }
 
-  // Obtener reseñas de un servicio (para el Marketplace)
   getServiceReviews(serviceId: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/service/${serviceId}`);
+  }
+
+  getAllReviews(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/all`);
+  }
+
+  censorReview(id: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${id}/censor`, {});
+  }
+
+  deleteReview(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`);
   }
 }

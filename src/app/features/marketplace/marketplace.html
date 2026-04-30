@@ -153,7 +153,6 @@
 
 </div>
 
-<!-- MODAL PARA LEER RESEÑAS -->
 <div class="modal fade" id="readReviewsModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content border-0 shadow">
@@ -180,8 +179,28 @@
                     }
                   </div>
                 </div>
-                <p class="mb-1 text-secondary fst-italic">"{{ review.comment }}"</p>
-                <small class="text-muted">{{ review.createdAt | date:'mediumDate' }}</small>
+                
+                <p class="mb-2 fst-italic" 
+                   [ngClass]="review.comment.includes('[CENSORED') ? 'text-danger fw-bold' : 'text-secondary'">
+                  "{{ review.comment }}"
+                </p>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                  <small class="text-muted">{{ review.createdAt | date:'mediumDate' }}</small>
+                  
+                  @if (isAdmin) {
+                    <div class="btn-group btn-group-sm">
+                      <button class="btn btn-outline-warning" (click)="censorReview(review.id)" 
+                              title="Censor Text (Keep Rating)" [disabled]="review.comment.includes('[CENSORED')">
+                        <i class="bi bi-eye-slash"></i> Censor
+                      </button>
+                      <button class="btn btn-outline-danger" (click)="deleteReview(review.id)" 
+                              title="Delete Entire Review">
+                        <i class="bi bi-trash"></i> Delete
+                      </button>
+                    </div>
+                  }
+                </div>
               </div>
             }
           </div>
@@ -196,10 +215,8 @@
   </div>
 </div>
 
-<!-- (EL RESTO DE MODALES EXISTENTES SE MANTIENEN EXACTAMENTE IGUAL) -->
 
 <div class="modal fade" id="createServiceModal" tabindex="-1" aria-hidden="true">
-  <!-- (Contenido de createServiceModal sin cambios) -->
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow">
       <div class="modal-header bg-primary text-white">
@@ -242,7 +259,6 @@
 </div>
 
 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
-  <!-- (Contenido de deleteConfirmModal sin cambios) -->
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow">
       <div class="modal-header bg-danger text-white border-0">
@@ -263,7 +279,6 @@
 </div>
 
 <div class="modal fade" id="buyConfirmModal" tabindex="-1" aria-hidden="true">
-  <!-- (Contenido de buyConfirmModal sin cambios) -->
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow">
       <div class="modal-header bg-success text-white border-0">

@@ -211,4 +211,26 @@ export class MarketplaceComponent implements OnInit {
     this.filterForm.reset();
     this.cargarServicios();
   }
+
+  censorReview(reviewId: string): void {
+    if (confirm('Are you sure you want to censor the text of this review?')) {
+      this.reviewService.censorReview(reviewId).subscribe({
+        next: () => {
+          this.cargarServicios();
+        },
+        error: (err) => alert('Error censoring review')
+      });
+    }
+  }
+
+  deleteReview(reviewId: string): void {
+    if (confirm('Are you sure you want to completely delete this review?')) {
+      this.reviewService.deleteReview(reviewId).subscribe({
+        next: () => {
+          this.cargarServicios();
+        },
+        error: (err) => alert('Error deleting review')
+      });
+    }
+  }
 }

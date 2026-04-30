@@ -42,7 +42,7 @@
     </div>
   </div>
 
-  <ul class="nav nav-pills mb-4 bg-white p-2 rounded-pill shadow-sm border">
+  <ul class="nav nav-pills mb-4 bg-white p-2 rounded-pill shadow-sm border flex-wrap">
     <li class="nav-item">
       <button class="nav-link rounded-pill fw-bold px-4" [class.active]="activeTab === 'users'" (click)="activeTab = 'users'">
         <i class="bi bi-people-fill me-1"></i> Users
@@ -61,6 +61,12 @@
     <li class="nav-item">
       <button class="nav-link rounded-pill fw-bold px-4" [class.active]="activeTab === 'transactions'" (click)="activeTab = 'transactions'">
         <i class="bi bi-cash-stack me-1"></i> Economy
+      </button>
+    </li>
+    <!-- NUEVA PESTAÑA: REVIEWS -->
+    <li class="nav-item">
+      <button class="nav-link rounded-pill fw-bold px-4" [class.active]="activeTab === 'reviews'" (click)="activeTab = 'reviews'">
+        <i class="bi bi-star-half me-1"></i> Reviews
       </button>
     </li>
   </ul>
@@ -148,9 +154,9 @@
             <tbody>
               @for (req of requests; track req.id) {
                 <tr>
-                  <td class="fw-bold">{{ req.service.title }}</td>
-                  <td>{{ req.requester.fullName }}</td>
-                  <td>{{ req.provider.fullName }}</td>
+                  <td class="fw-bold">{{ req.service?.title }}</td>
+                  <td>{{ req.requester?.fullName }}</td>
+                  <td>{{ req.provider?.fullName }}</td>
                   <td class="fw-semibold text-secondary">{{ req.agreedPrice }} TC</td>
                   <td class="text-end fw-bold" 
                       [ngClass]="{'text-warning': req.status === 'PENDING', 'text-success': req.status === 'COMPLETED', 'text-danger': req.status === 'CANCELLED' || req.status === 'REJECTED'}">
@@ -180,8 +186,10 @@
               @for (tx of transactions; track tx.id) {
                 <tr>
                   <td>{{ tx.createdAt | date:'short' }}</td>
-                  <td class="text-danger fw-semibold">{{ tx.sender.fullName }}</td>
-                  <td class="text-success fw-semibold">{{ tx.receiver.fullName }}</td>
+                  <td class="text-danger fw-semibold">
+                    {{ tx.sender?.fullName || 'System (Stripe)' }}
+                  </td>
+                  <td class="text-success fw-semibold">{{ tx.receiver?.fullName }}</td>
                   <td class="fw-bold">{{ tx.amount }} TC</td>
                   <td class="text-end text-muted small">{{ tx.concept }}</td>
                 </tr>
@@ -191,6 +199,63 @@
         </div>
       }
 
+      @if (activeTab === 'reviews') {
+        <h5 class="fw-bold mb-4">Review Moderation</h5>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th class="text-muted">Date</th>
+                <th class="text-muted">Service</th>
+                <th class="text-muted">Author</th>
+                <th class="text-muted">Rating</th>
+                <th class="text-muted">Comment</th>
+                <th class="text-end text-muted">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (review of reviews; track review.id) {
+                <tr>
+                  <td class="small">{{ review.createdAt | date:'shortDate' }}</td>
+                  <td class="fw-bold">{{ review.service?.title || 'Deleted Service' }}</td>
+                  <td>{{ review.author?.fullName }}</td>
+                  <td class="text-warning">
+                    {{ review.rating }} <i class="bi bi-star-fill"></i>
+                  </td>
+                  <td style="max-width: 250px;">
+                    <span class="d-inline-block text-truncate" style="max-width: 100%;" 
+                          [ngClass]="review.comment.includes('[CENSORED') ? 'text-danger fw-bold' : 'text-secondary'"
+                          title="{{ review.comment }}">
+                      {{ review.comment }}
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <div class="btn-group btn-group-sm">
+                      <button class="btn btn-outline-warning" 
+                              (click)="censorReview(review.id)" 
+                              title="Censor text (Keep rating)"
+                              [disabled]="review.comment.includes('[CENSORED')">
+                        <i class="bi bi-eye-slash"></i>
+                      </button>
+                      <button class="btn btn-outline-danger" 
+                              (click)="deleteReview(review.id)" 
+                              title="Delete completely">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6" class="text-center py-4 text-muted">
+                    No reviews submitted yet.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
     </div>
   </div>
 </div>
