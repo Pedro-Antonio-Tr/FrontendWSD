@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { ServiceMarketplaceService } from '../../core/services/service.service';
 import { AuthService } from '../../core/services/auth';
 import { RequestService } from '../../core/services/request.service';
+import { ReviewService } from '../../core/services/review.service';
 
 @Component({
   selector: 'app-marketplace',
@@ -28,6 +29,10 @@ export class MarketplaceComponent implements OnInit {
   serviceToDelete: string | null = null;
   filterForm: FormGroup;
   
+  serviceRatingMap: { [serviceId: string]: { avg: number, count: number, reviews: any[] } } = {};
+  providerRatingMap: { [providerId: string]: { totalRating: number, count: number, avg: number } } = {};
+  selectedServiceForReviews: any = null; 
+  
   get isAdmin(): boolean {
     return this.authService.isAdmin();
   } 
@@ -36,6 +41,7 @@ export class MarketplaceComponent implements OnInit {
     private marketplaceService: ServiceMarketplaceService,
     private authService: AuthService,
     private requestService: RequestService,
+    private reviewService: ReviewService,
     private fb: FormBuilder,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
@@ -70,21 +76,37 @@ export class MarketplaceComponent implements OnInit {
       next: (user) => {
         this.currentUserId = user.id; 
       },
-      error: (err) => {
-        console.error('Error al obtener el ID del usuario', err);
-      }
+      error: (err) => console.error('Error al obtener el ID del usuario', err)
     });
   }
 
   cargarServicios(): void {
     this.isLoading = true;
-    
     const currentFilters = this.filterForm.value;
 
     this.marketplaceService.getAllActiveServices(currentFilters).subscribe({
       next: (data) => {
         this.services = data;
         this.isLoading = false;
+        
+        this.providerRatingMap = {}; 
+        
+        this.services.forEach(service => {
+          this.reviewService.getServiceReviews(service.id).subscribe(reviews => {
+            
+            const avg = reviews.length ? reviews.reduce((acc: number, r: any) => acc + r.rating, 0) / reviews.length : 0;
+            this.serviceRatingMap[service.id] = { avg, count: reviews.length, reviews };
+
+            const provId = service.provider.id;
+            if (!this.providerRatingMap[provId]) {
+              this.providerRatingMap[provId] = { totalRating: 0, count: 0, avg: 0 };
+            }
+            this.providerRatingMap[provId].totalRating += reviews.reduce((acc: number, r: any) => acc + r.rating, 0);
+            this.providerRatingMap[provId].count += reviews.length;
+            this.providerRatingMap[provId].avg = this.providerRatingMap[provId].count ? 
+                (this.providerRatingMap[provId].totalRating / this.providerRatingMap[provId].count) : 0;
+          });
+        });
       },
       error: (err) => {
         console.error('Error cargando los servicios:', err);
@@ -93,11 +115,15 @@ export class MarketplaceComponent implements OnInit {
     });
   }
 
+  openReviewsModal(service: any): void {
+    this.selectedServiceForReviews = service;
+  }
+
   openBuyModal(service: any): void {
     this.serviceToBuy = service;
   }
 
-confirmRequest(): void {
+  confirmRequest(): void {
     if (!this.serviceToBuy) return;
     this.isBuying = true;
 
@@ -105,9 +131,7 @@ confirmRequest(): void {
       next: () => {
         this.isBuying = false;
         alert('¡Petición enviada! El proveedor debe aceptarla.');
-
         document.getElementById('closeBuyModalBtn')?.click();
-
         this.cargarServicios(); 
       },
       error: (err) => {
@@ -154,27 +178,6 @@ confirmRequest(): void {
     }
   }
 
-  onDeleteService(id: string): void {
-    if (confirm('Are you sure you want to cancel this service? This action is permanent.')) {
-      this.marketplaceService.deleteService(id).subscribe({
-        next: () => this.cargarServicios(),
-        error: (err) => console.error('Error deleting service', err)
-      });
-    }
-  }
-
-  private handleSuccess() {
-    this.isSubmitting = false;
-    this.cargarServicios();
-    document.getElementById('closeModalBtn')?.click();
-    this.resetForm();
-  }
-
-  private handleError() {
-    this.isSubmitting = false;
-    alert('An error occurred.');
-  }
-
   openDeleteModal(id: string): void {
     this.serviceToDelete = id;
   }
@@ -190,6 +193,18 @@ confirmRequest(): void {
       },
       error: (err) => console.error('Error al borrar', err)
     });
+  }
+
+  private handleSuccess() {
+    this.isSubmitting = false;
+    this.cargarServicios();
+    document.getElementById('closeModalBtn')?.click();
+    this.resetForm();
+  }
+
+  private handleError() {
+    this.isSubmitting = false;
+    alert('An error occurred.');
   }
 
   resetFilters(): void {
