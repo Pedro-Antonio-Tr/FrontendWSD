@@ -36,6 +36,21 @@
               </span>
             </div>
             
+            <div class="d-flex justify-content-center align-items-center gap-2 mb-4">
+              @if (averageRating > 0) {
+                <div class="bg-white border rounded-pill px-3 py-1 shadow-sm d-flex align-items-center">
+                  <span class="text-warning me-1">
+                    <i class="bi bi-star-fill"></i>
+                  </span>
+                  <span class="fw-bold text-dark">{{ averageRating | number:'1.1-1' }}</span>
+                  <span class="text-muted small ms-1">/ 5</span>
+                  <span class="text-muted small ms-2">({{ reviewsToDisplay.length }} reviews)</span>
+                </div>
+              } @else {
+                <span class="text-muted small fst-italic">No ratings yet</span>
+              }
+            </div>
+
             <hr class="my-4 text-muted">
             <p class="small text-muted mb-0">
               Time Bank member since {{ (userData.createdAt | date:'longDate') || '2026' }}
@@ -89,6 +104,12 @@
           </button>
           <button class="btn rounded-pill px-4" [ngClass]="viewMode === 'history' ? 'btn-secondary shadow-sm' : 'btn-outline-secondary'" 
                   (click)="viewMode = 'history'">Service History</button>
+
+          <button class="btn rounded-pill px-4" 
+                  [ngClass]="viewMode === 'received_reviews' ? 'btn-info shadow-sm text-white' : 'btn-outline-info'" 
+                  (click)="seleccionarModoReviews()">
+              <i class="bi bi-star-fill"></i> Reviews Received
+          </button>
         </div>
 
         @if (viewMode === 'active') {
@@ -143,23 +164,30 @@
 
               <div class="list-group">
                 @for (tx of myHistory; track tx.id) {
-                  <div class="list-group-item list-group-item-action p-4 mb-2 border rounded-4 shadow-sm"
-                       [ngClass]="tx.sender.id === userData?.id ? 'border-danger border-start-4' : 'border-success border-start-4'">
+                  <!-- Condición lógica: Si es Stripe OR el usuario actual es el receptor, es verde -->
+                  <div class="list-group-item list-group-item-action p-4 mb-2 border rounded-4 shadow-sm border-start-4"
+                      [ngClass]="(tx.concept.includes('Stripe') || tx.receiver?.id === userData?.id) ? 'border-success' : 'border-danger'">
+                    
                     <div class="d-flex justify-content-between align-items-center mb-2">
                       <h6 class="fw-bold mb-0 text-dark">{{ tx.concept }}</h6>
                       
-                      <h5 class="fw-bold mb-0" [ngClass]="tx.sender.id === userData?.id ? 'text-danger' : 'text-success'">
-                        {{ tx.sender.id === userData?.id ? '-' : '+' }}{{ tx.amount }} TC
+                      <!-- Símbolo y color corregido para recargas de Stripe -->
+                      <h5 class="fw-bold mb-0" [ngClass]="(tx.concept.includes('Stripe') || tx.receiver?.id === userData?.id) ? 'text-success' : 'text-danger'">
+                        {{ (tx.concept.includes('Stripe') || tx.receiver?.id === userData?.id) ? '+' : '-' }}{{ tx.amount }} TC
                       </h5>
                     </div>
                     
                     <div class="d-flex justify-content-between align-items-end text-muted small">
                       <span>
                         <i class="bi bi-person-circle me-1"></i>
-                        @if (tx.sender.id === userData?.id) {
-                          Paid to: <strong class="text-dark">{{ tx.receiver.fullName }}</strong>
+                        
+                        @if (tx.concept.includes('Stripe')) {
+                          <!-- Para recargas no mostramos "Paid to", sino el origen -->
+                          Source: <strong class="text-dark">Stripe Wallet Recharge</strong>
+                        } @else if (tx.sender.id === userData?.id) {
+                          Paid to: <strong class="text-dark">{{ tx.receiver?.fullName }}</strong>
                         } @else {
-                          Received from: <strong class="text-dark">{{ tx.sender.fullName }}</strong>
+                          Received from: <strong class="text-dark">{{ tx.sender?.fullName }}</strong>
                         }
                       </span>
                       <span><i class="bi bi-clock me-1"></i> {{ tx.createdAt | date:'medium' }}</span>
@@ -313,6 +341,55 @@
           </div>
         }
         }
+
+        <!-- NUEVA SECCIÓN: RECEIVED REVIEWS (USANDO HIDDEN PARA EVITAR ERRORES DE CACHÉ) -->
+        <!-- Se usa [hidden] para evitar conflictos de tipos con el compilador -->
+        <div class="row justify-content-center animate__animated animate__fadeIn mt-4" 
+            [hidden]="viewMode !== 'received_reviews'">
+          <div class="col-lg-10">
+            <h5 class="fw-bold text-dark border-bottom pb-2 mb-4">
+              <i class="bi bi-chat-left-heart text-info me-2"></i> Feedback from your Clients
+            </h5>
+
+            <div class="list-group">
+              <!-- Ahora iteramos sobre la variable reviewsToDisplay calculada en el TS -->
+              @for (req of reviewsToDisplay; track req.id) {
+                <div class="list-group-item p-4 mb-3 border rounded-4 shadow-sm bg-white border-start border-info border-4">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <h6 class="fw-bold text-primary mb-1">{{ req.service?.title }}</h6>
+                      <!-- Intento de mostrar el nombre del cliente -->
+                      <p class="small text-muted mb-0">
+                        Client: <strong>{{ req.requester?.fullName || 'Anonymous User' }}</strong>
+                      </p>
+                    </div>
+                    <div class="text-end">
+                      <div class="text-warning mb-1">
+                        @for (star of [1, 2, 3, 4, 5]; track star) {
+                          <i class="bi" [ngClass]="star <= req.review?.rating ? 'bi-star-fill' : 'bi-star'"></i>
+                        }
+                      </div>
+                      <span class="small text-muted d-block">{{ req.review?.createdAt | date:'mediumDate' }}</span>
+                    </div>
+                  </div>
+                  <hr class="my-2 opacity-25">
+                  <div class="bg-light p-3 rounded-3 mt-2">
+                    <p class="fst-italic text-secondary mb-0">
+                      <i class="bi bi-quote text-info fs-4"></i>
+                      {{ req.review?.comment }}
+                    </p>
+                  </div>
+                </div>
+              } @empty {
+                <div class="text-center py-5 bg-light rounded-4 border border-dashed">
+                  <i class="bi bi-chat-square-text display-4 text-muted"></i>
+                  <h5 class="fw-bold mt-3 text-secondary">No reviews yet</h5>
+                  <p class="text-muted">Once you complete a service and the client rates you, it will appear here.</p>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
 
       </div>
     </div>

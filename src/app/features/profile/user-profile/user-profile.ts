@@ -24,6 +24,8 @@ export class UserProfile implements OnInit {
   isLoading: boolean = true;
   errorMessage: string = '';
   myHistory: any[] = [];
+  reviewsToDisplay: any[] = [];
+  isRecharging: boolean = false;
   
   // Variables para el sistema de reviews
   isReviewing = false;
@@ -31,7 +33,7 @@ export class UserProfile implements OnInit {
   reviewComment = '';
   selectedRequest: any = null;
   
-  viewMode: 'active' | 'history' | 'requests' = 'active';
+  viewMode: any = 'active';
 
   serviceForm: FormGroup;
   isSubmitting: boolean = false;
@@ -100,6 +102,13 @@ export class UserProfile implements OnInit {
     this.requestService.getMyRequests().subscribe({
       next: (requests) => {
         this.myRequests = requests;
+        // Filtramos las reseñas nada más recibirlas para que el promedio se calcule al inicio
+        if (this.myRequests && this.userData) {
+          this.reviewsToDisplay = this.myRequests.filter(req => 
+            req.provider?.id === this.userData?.id && req.review != null
+          );
+        }
+        
         this.checkLoadingCompletion();
       },
       error: (error) => console.error('Error al cargar mis peticiones', error)
@@ -114,7 +123,7 @@ export class UserProfile implements OnInit {
     });
   }
 
-  isRecharging: boolean = false;
+
 
   rechargeBalance(amount: number): void {
     this.isRecharging = true;
@@ -255,5 +264,31 @@ export class UserProfile implements OnInit {
         alert(err.error?.message || 'Error saving review');
       }
     });
+  }
+
+   /**
+   * Cambia la vista a reseñas recibidas y filtra los datos
+   */
+  seleccionarModoReviews(): void {
+    this.viewMode = 'received_reviews';
+    
+    if (!this.myRequests || !this.userData) {
+      this.reviewsToDisplay = [];
+      return;
+    }
+
+    // Filtramos las peticiones: 
+    // Que yo sea el proveedor y que la petición tenga una reseña completada
+    this.reviewsToDisplay = this.myRequests.filter(req => 
+      req.provider?.id === this.userData?.id && req.review != null
+    );
+  }
+
+  get averageRating(): number {
+    if (!this.reviewsToDisplay || this.reviewsToDisplay.length === 0) {
+      return 0;
+    }
+    const total = this.reviewsToDisplay.reduce((sum, req) => sum + (req.review?.rating || 0), 0);
+    return total / this.reviewsToDisplay.length;
   }
 }
