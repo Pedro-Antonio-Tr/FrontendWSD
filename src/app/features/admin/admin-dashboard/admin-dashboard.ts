@@ -5,11 +5,12 @@ import { ServiceMarketplaceService } from '../../../core/services/service.servic
 import { RequestService } from '../../../core/services/request.service';
 import { TransactionService } from '../../../core/services/transaction.service';
 import { ReviewService } from '../../../core/services/review.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin-dashboard.html',
   styleUrls: ['./admin-dashboard.css']
 })
@@ -21,6 +22,7 @@ export class AdminDashboard implements OnInit {
   requests: any[] = [];
   transactions: any[] = [];
   reviews: any[] = [];
+  searchTerm: string = '';
 
   stats = {
     totalUsers: 0,
@@ -110,5 +112,16 @@ export class AdminDashboard implements OnInit {
         error: (err) => alert('Error deleting review')
       });
     }
+  }
+
+  get filteredUsers() {
+    if (!this.searchTerm) {
+      return this.users;
+    }
+    const term = this.searchTerm.toLowerCase();
+    return this.users.filter(user => 
+      user.fullName?.toLowerCase().includes(term) || 
+      user.email?.toLowerCase().includes(term)
+    );
   }
 }
