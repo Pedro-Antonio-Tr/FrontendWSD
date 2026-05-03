@@ -124,4 +124,26 @@ export class AdminDashboard implements OnInit {
       user.email?.toLowerCase().includes(term)
     );
   }
+
+  // Añade este método en tu AdminDashboard
+  cambiarRol(user: any): void {
+    const nuevoRol = user.role === 'admin' ? 'user' : 'admin';
+    const confirmacion = confirm(`¿Estás seguro de cambiar el rol de ${user.fullName} a ${nuevoRol.toUpperCase()}?`);
+
+    if (confirmacion) {
+      this.userService.updateUserRole(user.id, nuevoRol).subscribe({
+        next: () => {
+          this.cargarTodo();
+          alert('Rol actualizado correctamente');
+        },
+        error: (err) => {
+          if (err.status === 409) {
+            alert('Error: No puedes cambiar tu propio rol por seguridad.');
+          } else {
+            alert('Error al actualizar el rol');
+          }
+        }
+      });
+    }
+  }
 }

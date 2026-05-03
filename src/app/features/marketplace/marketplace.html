@@ -89,6 +89,15 @@
                         {{ service.provider.fullName }}
                       }
                     </strong>
+
+                    @if (service.provider.id !== currentUserId && (providerRatingMap[service.provider.id]?.avg || 0) >= 4.5 && (providerRatingMap[service.provider.id]?.count || 0) >= 3) {
+                      <span class="badge rounded-pill bg-success ms-2 shadow-sm d-inline-flex align-items-center" 
+                            title="Excellent reputation" 
+                            style="font-size: 0.65rem; padding: 0.35em 0.65em; vertical-align: middle;">
+                        <i class="bi bi-patch-check-fill me-1"></i>
+                        TRUSTED
+                      </span>
+                    }
                   </p>
                   <div class="small">
                     <span class="text-muted">Provider Rating: </span>

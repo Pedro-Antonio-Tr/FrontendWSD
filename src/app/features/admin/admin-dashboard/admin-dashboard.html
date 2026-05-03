@@ -95,6 +95,7 @@
                 <th class="text-muted">Name</th>
                 <th class="text-muted">Email</th>
                 <th class="text-muted">Balance</th>
+                <th class="text-muted">Role</th>
                 <th class="text-muted">Status</th>
                 <th class="text-end text-muted">Action</th>
               </tr>
@@ -102,18 +103,40 @@
             <tbody>
               @for (user of filteredUsers; track user.id) {
                 <tr>
+                  <!-- Busca el interior del @for (user of filteredUsers...) -->
                   <td class="fw-bold">{{ user.fullName }}</td>
                   <td>{{ user.email }}</td>
                   <td class="fw-semibold text-success">{{ user.balance }} TC</td>
+
+                  <!-- AÑADE ESTO: CELDA DE ROL -->
+                  <td>
+                    <span class="badge rounded-pill" [ngClass]="user.role === 'admin' ? 'bg-dark' : 'bg-info text-dark'">
+                      {{ user.role | uppercase }}
+                    </span>
+                  </td>
+
                   <td>
                     <span class="badge rounded-pill" [class.bg-success]="user.isActive" [class.bg-danger]="!user.isActive">
                       {{ user.isActive ? 'Active' : 'Blocked' }}
                     </span>
                   </td>
+
                   <td class="text-end">
-                    <button class="btn btn-sm" [class.btn-outline-danger]="user.isActive" [class.btn-outline-success]="!user.isActive" (click)="cambiarEstado(user.id)">
-                      {{ user.isActive ? 'Block' : 'Unlock' }}
-                    </button>
+                    <div class="btn-group">
+                      <!-- Botón de Bloqueo (Ya lo tenías) -->
+                      <button class="btn btn-sm" [class.btn-outline-danger]="user.isActive" [class.btn-outline-success]="!user.isActive" (click)="cambiarEstado(user.id)">
+                        {{ user.isActive ? 'Block' : 'Unlock' }}
+                      </button>
+                      
+                      <!-- NUEVO: Botón de Cambio de Rol -->
+                      <button class="btn btn-sm ms-2" 
+                              [class.btn-outline-dark]="user.role === 'admin'" 
+                              [class.btn-outline-primary]="user.role !== 'admin'" 
+                              (click)="cambiarRol(user)"
+                              title="Promote/Demote">
+                        <i class="bi" [ngClass]="user.role === 'admin' ? 'bi-person-down' : 'bi-person-up'"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               }

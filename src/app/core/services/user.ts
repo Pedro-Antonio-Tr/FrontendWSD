@@ -19,4 +19,8 @@ export class UserService {
   toggleUserStatus(id: string): Observable<any> {
     return this.http.patch(`${this.apiUrl}/${id}/status`, {});
   }
+  
+  updateUserRole(userId: string, role: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${userId}/role`, { role });
+  }
 }
