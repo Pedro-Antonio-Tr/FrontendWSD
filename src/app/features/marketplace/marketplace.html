@@ -80,8 +80,8 @@
                 </div>
                 
                 <div class="p-2 mb-3 bg-light rounded-3 border">
-                  <p class="text-dark small mb-1">
-                    <i class="bi bi-person-circle me-1 text-primary"></i> 
+                  <p class="text-dark small mb-1 d-flex align-items-center">
+                    <img [src]="service.provider.email | gravatar:24" class="rounded-circle me-2 shadow-sm" width="24" height="24">
                     <strong>
                       @if (service.provider.id === currentUserId) {
                         You
@@ -179,8 +179,9 @@
             @for (review of serviceRatingMap[selectedServiceForReviews.id]?.reviews; track review.id) {
               <div class="list-group-item p-4">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                  <div class="fw-bold text-dark">
-                    <i class="bi bi-person-fill text-secondary me-1"></i> {{ review.author?.fullName || 'Anonymous' }}
+                  <div class="fw-bold text-dark d-flex align-items-center">
+                    <img [src]="review.author?.email | gravatar:28" class="rounded-circle me-2 shadow-sm" width="28" height="28">
+                    {{ review.author?.fullName || 'Anonymous' }}
                   </div>
                   <div class="text-warning">
                     @for (star of [1, 2, 3, 4, 5]; track star) {

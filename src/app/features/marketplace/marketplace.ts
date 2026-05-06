@@ -5,11 +5,12 @@ import { ServiceMarketplaceService } from '../../core/services/service.service';
 import { AuthService } from '../../core/services/auth';
 import { RequestService } from '../../core/services/request.service';
 import { ReviewService } from '../../core/services/review.service';
+import { GravatarPipe } from '../../shared/pipes/gravatar.pipe';
 
 @Component({
   selector: 'app-marketplace',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, GravatarPipe],
   templateUrl: './marketplace.html',
   styleUrls: ['./marketplace.css']
 })

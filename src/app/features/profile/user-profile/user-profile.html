@@ -23,9 +23,9 @@
           }
 
           @if (!isLoading && !errorMessage && userData) {
-            <div class="avatar-circle bg-light text-primary mx-auto mb-3 shadow-sm">
-              <i class="fs-1 fw-bold">{{ userData.fullName?.charAt(0) | uppercase }}</i>
-            </div>
+            <img [src]="userData.email | gravatar:120" alt="Avatar" 
+              class="rounded-circle mx-auto d-block mb-3 shadow-sm bg-light" 
+              width="120" height="120" style="object-fit: cover; border: 4px solid white;">
             
             <h3 class="fw-bold">{{ userData.fullName }}</h3>
             <p class="text-muted mb-4">{{ userData.email }}</p>
@@ -164,14 +164,11 @@
 
               <div class="list-group">
                 @for (tx of myHistory; track tx.id) {
-                  <!-- Condición lógica: Si es Stripe OR el usuario actual es el receptor, es verde -->
                   <div class="list-group-item list-group-item-action p-4 mb-2 border rounded-4 shadow-sm border-start-4"
                       [ngClass]="(tx.concept.includes('Stripe') || tx.receiver?.id === userData?.id) ? 'border-success' : 'border-danger'">
                     
                     <div class="d-flex justify-content-between align-items-center mb-2">
                       <h6 class="fw-bold mb-0 text-dark">{{ tx.concept }}</h6>
-                      
-                      <!-- Símbolo y color corregido para recargas de Stripe -->
                       <h5 class="fw-bold mb-0" [ngClass]="(tx.concept.includes('Stripe') || tx.receiver?.id === userData?.id) ? 'text-success' : 'text-danger'">
                         {{ (tx.concept.includes('Stripe') || tx.receiver?.id === userData?.id) ? '+' : '-' }}{{ tx.amount }} TC
                       </h5>
@@ -182,7 +179,6 @@
                         <i class="bi bi-person-circle me-1"></i>
                         
                         @if (tx.concept.includes('Stripe')) {
-                          <!-- Para recargas no mostramos "Paid to", sino el origen -->
                           Source: <strong class="text-dark">Stripe Wallet Recharge</strong>
                         } @else if (tx.sender.id === userData?.id) {
                           Paid to: <strong class="text-dark">{{ tx.receiver?.fullName }}</strong>
@@ -341,9 +337,6 @@
           </div>
         }
         }
-
-        <!-- NUEVA SECCIÓN: RECEIVED REVIEWS (USANDO HIDDEN PARA EVITAR ERRORES DE CACHÉ) -->
-        <!-- Se usa [hidden] para evitar conflictos de tipos con el compilador -->
         <div class="row justify-content-center animate__animated animate__fadeIn mt-4" 
             [hidden]="viewMode !== 'received_reviews'">
           <div class="col-lg-10">
@@ -352,13 +345,11 @@
             </h5>
 
             <div class="list-group">
-              <!-- Ahora iteramos sobre la variable reviewsToDisplay calculada en el TS -->
               @for (req of reviewsToDisplay; track req.id) {
                 <div class="list-group-item p-4 mb-3 border rounded-4 shadow-sm bg-white border-start border-info border-4">
                   <div class="d-flex justify-content-between align-items-start mb-2">
                     <div>
                       <h6 class="fw-bold text-primary mb-1">{{ req.service?.title }}</h6>
-                      <!-- Intento de mostrar el nombre del cliente -->
                       <p class="small text-muted mb-0">
                         Client: <strong>{{ req.requester?.fullName || 'Anonymous User' }}</strong>
                       </p>

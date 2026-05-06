@@ -9,11 +9,12 @@ import { TransactionService } from '../../../core/services/transaction.service';
 import { PaymentService } from '../../../core/services/payment.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { GravatarPipe } from '../../../shared/pipes/gravatar.pipe';
 
 @Component({
   selector: 'app-user-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, GravatarPipe],
   templateUrl: './user-profile.html',
   styleUrls: ['./user-profile.css']
 })
