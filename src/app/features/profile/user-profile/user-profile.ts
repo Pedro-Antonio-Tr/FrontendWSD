@@ -288,4 +288,23 @@ export class UserProfile implements OnInit {
     const total = this.reviewsToDisplay.reduce((sum, req) => sum + (req.review?.rating || 0), 0);
     return total / this.reviewsToDisplay.length;
   }
+
+  get misNotificaciones() {
+    if (!this.myHistory || !this.userData) return [];
+    
+    return this.myHistory.filter(tx => {
+      const esMensajeValido = tx.concept.includes('NOTIFICATION') || 
+                              tx.concept.includes('MODERATION') || 
+                              tx.concept.includes('SYSTEM') ||
+                              tx.concept.includes('Stripe');
+      
+      // REGLA DE ORO: Solo muestro la notificación si YO soy el RECEPTOR (receiver)
+      return esMensajeValido && tx.receiver?.id === this.userData.id;
+    }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  // Método para que el botón de la interfaz funcione
+  seleccionarModoNotifications(): void {
+    this.viewMode = 'notifications';
+  }
 }

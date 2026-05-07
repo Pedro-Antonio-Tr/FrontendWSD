@@ -146,4 +146,70 @@ export class AdminDashboard implements OnInit {
       });
     }
   }
+
+    // --- MÉTRICAS CALCULADAS PARA EL DASHBOARD ---
+
+    /**
+     * Calcula el volumen total de Time Credits movidos en la plataforma
+     */
+    get totalVolume(): number {
+      if (!this.transactions) return 0;
+      return this.transactions.reduce((acc, tx) => acc + tx.amount, 0);
+    }
+
+    /**
+     * Cuenta cuántas intervenciones de moderación se han registrado
+     * (Basado en los logs de 0 TC que contienen la palabra 'MODERATION')
+     */
+    get moderationInterventions(): number {
+      if (!this.transactions) return 0;
+      return this.transactions.filter(tx => 
+        tx.amount === 0 && tx.concept.toUpperCase().includes('MODERATION')
+      ).length;
+    }
+
+    /**
+     * Calcula la calificación media global de todos los servicios
+     */
+    get globalAvgRating(): number {
+      if (!this.reviews || this.reviews.length === 0) return 0;
+      const sum = this.reviews.reduce((acc, r) => acc + r.rating, 0);
+      return sum / this.reviews.length;
+    }
+
+    exportarUsuarios(): void {
+    if (this.users.length === 0) return;
+
+    // 1. Cabeceras
+    const headers = ['ID', 'Full Name', 'Email', 'Role', 'Balance', 'Status'];
+    
+    // 2. Mapear datos asegurando comillas para evitar que los espacios rompan las columnas
+    const rows = this.users.map(user => [
+      `"${user.id || ''}"`,
+      `"${user.fullName || ''}"`,
+      `"${user.email || ''}"`,
+      `"${user.role || ''}"`,
+      user.balance || 0,
+      `"${user.isActive ? 'Active' : 'Blocked'}"`
+    ]);
+
+    // 3. Crear contenido con BOM (para acentos) y separador de punto y coma
+    // El \ufeff es el "Byte Order Mark" para que Excel abra el archivo con codificación UTF-8 correctamente
+    const csvContent = '\ufeff' + [
+      headers.join(';'), 
+      ...rows.map(e => e.join(';'))
+    ].join('\n');
+
+    // 4. Descarga
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `time_bank_users_${new Date().toISOString().slice(0,10)}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 }
