@@ -34,7 +34,7 @@ export class UserProfile implements OnInit {
   reviewComment = '';
   selectedRequest: any = null;
   
-  viewMode: any = 'active';
+  viewMode: any = 'active'; // Control de pestañas de la interfaz (active, history, notifications, etc.)
 
   serviceForm: FormGroup;
   isSubmitting: boolean = false;
@@ -54,6 +54,7 @@ export class UserProfile implements OnInit {
     private fb: FormBuilder,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
+    // Formulario reactivo para que el usuario pueda editar sus propios servicios
     this.serviceForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(5)]],
       description: ['', [Validators.required, Validators.minLength(10)]],
@@ -63,7 +64,11 @@ export class UserProfile implements OnInit {
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      
+      /**
+       * LÓGICA DE RETORNO DE STRIPE:
+       * El ActivatedRoute escucha si venimos de un pago exitoso (trae session_id en la URL).
+       * Si es así, verificamos el pago antes de cargar el resto de datos.
+       */
       this.route.queryParams.subscribe(params => {
         if (params['session_id']) {
           this.paymentService.verifyPayment(params['session_id']).subscribe({
@@ -84,6 +89,10 @@ export class UserProfile implements OnInit {
     }
   }
 
+  /**
+   * CARGA MULTI-SERVICIO: 
+   * Recupera de forma paralela toda la información necesaria para el perfil.
+   */
   cargarDatos(): void {
     this.authService.getProfile().subscribe({
       next: (data) => this.userData = data,
@@ -122,8 +131,10 @@ export class UserProfile implements OnInit {
     });
   }
 
-
-
+  /**
+   * INTEGRACIÓN CON STRIPE:
+   * Redirige al usuario fuera de la app hacia el Checkout seguro de Stripe.
+   */
   rechargeBalance(amount: number): void {
     this.isRecharging = true;
     this.paymentService.createCheckoutSession(amount).subscribe({
@@ -159,6 +170,10 @@ export class UserProfile implements OnInit {
     return this.myRequests.filter(req => req.requester.id === this.userData.id);
   }
 
+  /**
+   * GESTIÓN DE FLUJO DE TRABAJO (Requests):
+   * Permite al proveedor aceptar solicitudes o marcarlas como completadas.
+   */
   changeRequestStatus(requestId: string, newStatus: string): void {
     if (newStatus === 'COMPLETED') {
       if (!confirm('Are you sure you want to mark this as completed? This will process the payment.')) {
@@ -289,6 +304,10 @@ export class UserProfile implements OnInit {
     return total / this.reviewsToDisplay.length;
   }
 
+  /**
+   * SISTEMA DE NOTIFICACIONES:
+   * Filtra el historial de transacciones buscando conceptos clave (Stripe, Moderation, System).
+   */
   get misNotificaciones() {
     if (!this.myHistory || !this.userData) return [];
     
@@ -298,7 +317,7 @@ export class UserProfile implements OnInit {
                               tx.concept.includes('SYSTEM') ||
                               tx.concept.includes('Stripe');
       
-      // REGLA DE ORO: Solo muestro la notificación si YO soy el RECEPTOR (receiver)
+      // Solo muestro la notificación si YO soy el RECEPTOR (receiver)
       return esMensajeValido && tx.receiver?.id === this.userData.id;
     }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }

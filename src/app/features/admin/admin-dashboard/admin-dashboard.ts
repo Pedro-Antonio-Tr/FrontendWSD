@@ -17,12 +17,13 @@ import { FormsModule } from '@angular/forms';
 export class AdminDashboard implements OnInit {
   activeTab: 'users' | 'services' | 'requests' | 'transactions' | 'reviews' = 'users';
 
+  // Arrays para almacenar la información de la base de datos
   users: any[] = [];
   services: any[] = [];
   requests: any[] = [];
   transactions: any[] = [];
   reviews: any[] = [];
-  searchTerm: string = '';
+  searchTerm: string = ''; // Para el buscador de usuarios
 
   stats = {
     totalUsers: 0,
@@ -41,9 +42,13 @@ export class AdminDashboard implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.cargarTodo();
+    this.cargarTodo(); // Carga masiva de datos al iniciar
   }
 
+  /**
+   * RECOLECCIÓN DE DATOS: Consume todos los servicios para llenar el dashboard.
+   * Se suscribe a múltiples observables para obtener la foto completa del sistema.
+   */
   cargarTodo(): void {
     this.userService.getAllUsers().subscribe({
       next: (data) => {
@@ -62,6 +67,7 @@ export class AdminDashboard implements OnInit {
     this.requestService.getAllRequests().subscribe({
       next: (data) => {
         this.requests = data;
+        // Solo contamos como intercambios los que han llegado a 'COMPLETED'
         this.stats.totalExchanges = data.filter((r: any) => r.status === 'COMPLETED').length;
       }
     });
@@ -75,6 +81,9 @@ export class AdminDashboard implements OnInit {
     });
   }
 
+  /**
+   * MODERACIÓN DE USUARIOS: Activa o bloquea cuentas.
+   */
   cambiarEstado(userId: string): void {
     this.userService.toggleUserStatus(userId).subscribe({
       next: () => this.cargarTodo(),
@@ -82,6 +91,9 @@ export class AdminDashboard implements OnInit {
     });
   }
 
+  /**
+   * MODERACIÓN DE CONTENIDO: Borrado de servicios.
+   */
   deleteService(serviceId: string): void {
     if (confirm('Admin Override: Are you sure you want to permanently delete this service?')) {
       this.marketplaceService.deleteService(serviceId).subscribe({
@@ -90,6 +102,9 @@ export class AdminDashboard implements OnInit {
     }
   }
 
+  /**
+   * CENSURA DE RESEÑAS: Oculta texto ofensivo pero mantiene la existencia de la reseña.
+   */
   censorReview(reviewId: string): void {
     if (confirm('Are you sure you want to censor the text of this review? This action cannot be undone.')) {
       this.reviewService.censorReview(reviewId).subscribe({
@@ -125,7 +140,9 @@ export class AdminDashboard implements OnInit {
     );
   }
 
-  // Añade este método en tu AdminDashboard
+  /**
+   * GESTIÓN DE PRIVILEGIOS: Cambia roles de usuarios dinámicamente.
+   */
   cambiarRol(user: any): void {
     const nuevoRol = user.role === 'admin' ? 'user' : 'admin';
     const confirmacion = confirm(`¿Estás seguro de cambiar el rol de ${user.fullName} a ${nuevoRol.toUpperCase()}?`);
@@ -193,7 +210,7 @@ export class AdminDashboard implements OnInit {
       `"${user.isActive ? 'Active' : 'Blocked'}"`
     ]);
 
-    // 3. Crear contenido con BOM (para acentos) y separador de punto y coma
+    // 3. Crear contenido para acentos y separador de punto y coma
     // El \ufeff es el "Byte Order Mark" para que Excel abra el archivo con codificación UTF-8 correctamente
     const csvContent = '\ufeff' + [
       headers.join(';'), 

@@ -15,7 +15,7 @@ import { GravatarPipe } from '../../shared/pipes/gravatar.pipe';
   styleUrls: ['./marketplace.css']
 })
 export class MarketplaceComponent implements OnInit {
-  services: any[] = [];
+  services: any[] = []; // Lista de servicios a mostrar
   isLoading: boolean = true;
   currentUserId: string | null = null;
 
@@ -23,15 +23,22 @@ export class MarketplaceComponent implements OnInit {
   serviceToBuy: any = null;
   isBuying: boolean = false;
 
-  serviceForm: FormGroup;
+  // --- GESTIÓN DE FORMULARIOS ---
+  serviceForm: FormGroup; // Formulario para crear/editar servicios
+  filterForm: FormGroup;  // Formulario para búsqueda y filtros
+  
   isSubmitting: boolean = false;
   isEditing: boolean = false;
   editingServiceId: string | null = null;
   serviceToDelete: string | null = null;
-  filterForm: FormGroup;
-  
+
+  // --- REPUTACIÓN Y RATINGS ---
+  // Diccionario para almacenar la media de estrellas y reseñas de cada servicio individualmente
   serviceRatingMap: { [serviceId: string]: { avg: number, count: number, reviews: any[] } } = {};
+  // Diccionario para calcular la reputación total del proveedor (media de todos sus servicios)
   providerRatingMap: { [providerId: string]: { totalRating: number, count: number, avg: number } } = {};
+  
+
   selectedServiceForReviews: any = null; 
   
   get isAdmin(): boolean {
@@ -46,12 +53,14 @@ export class MarketplaceComponent implements OnInit {
     private fb: FormBuilder,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
+    // Definición de validadores para la creación de servicios
     this.serviceForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(5)]],
       description: ['', [Validators.required, Validators.minLength(10)]],
       price: [10, [Validators.required, Validators.min(1)]]
     });
     this.filterForm = this.fb.group({
+      // Formulario de filtros reactivos
       search: [''],
       maxPrice: [null]
     });
@@ -62,6 +71,7 @@ export class MarketplaceComponent implements OnInit {
       this.cargarUsuarioActual();
       this.cargarServicios();
       
+      // SUSCRIPCIÓN REACTIVA: Mantenemos el saldo actualizado si cambia en otro sitio
       this.authService.currentBalance$.subscribe(balance => {
         if (balance !== null) {
           this.currentBalance = balance;
@@ -81,6 +91,10 @@ export class MarketplaceComponent implements OnInit {
     });
   }
 
+  /**
+   * CARGA DE SERVICIOS Y REPUTACIÓN:
+   * Por cada servicio que llega, consultamos asíncronamente sus reseñas para calcular la media.
+   */
   cargarServicios(): void {
     this.isLoading = true;
     const currentFilters = this.filterForm.value;
@@ -98,6 +112,7 @@ export class MarketplaceComponent implements OnInit {
             const avg = reviews.length ? reviews.reduce((acc: number, r: any) => acc + r.rating, 0) / reviews.length : 0;
             this.serviceRatingMap[service.id] = { avg, count: reviews.length, reviews };
 
+            // Agregación de reputación por Proveedor (para el badge "TRUSTED")
             const provId = service.provider.id;
             if (!this.providerRatingMap[provId]) {
               this.providerRatingMap[provId] = { totalRating: 0, count: 0, avg: 0 };
@@ -124,6 +139,10 @@ export class MarketplaceComponent implements OnInit {
     this.serviceToBuy = service;
   }
 
+  /**
+   * FLUJO DE COMPRA:
+   * Envía la solicitud al backend. El backend validará si el usuario tiene saldo suficiente.
+   */
   confirmRequest(): void {
     if (!this.serviceToBuy) return;
     this.isBuying = true;
@@ -133,7 +152,7 @@ export class MarketplaceComponent implements OnInit {
         this.isBuying = false;
         alert('¡Petición enviada! El proveedor debe aceptarla.');
         document.getElementById('closeBuyModalBtn')?.click();
-        this.cargarServicios(); 
+        this.cargarServicios(); // Refrescamos para ver posibles cambios
       },
       error: (err) => {
         this.isBuying = false;

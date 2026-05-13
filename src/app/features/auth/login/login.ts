@@ -11,6 +11,11 @@ import { AuthService } from '../../../core/services/auth';
   styleUrls: ['./login.css']
 })
 export class Login {
+  /**
+   * FORMULARIO REACTIVO: Definimos la estructura del formulario y sus reglas.
+   * - email: Obligatorio y con formato de correo válido.
+   * - password: Obligatorio y con un mínimo de 6 caracteres.
+   */
   loginForm = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
     password: new FormControl('', [Validators.required, Validators.minLength(6)])
@@ -21,11 +26,17 @@ export class Login {
     private router: Router
   ) {}
 
+  /**
+   * PROCESO DE AUTENTICACIÓN:
+   * Se dispara al pulsar el botón de "Login".
+   */
   onSubmit() {
     if (this.loginForm.valid) {
+      // Si el formulario cumple las validaciones de arriba, llamamos al servicio
       this.authService.login(this.loginForm.value).subscribe({
         next: (response) => {
           console.log('¡Login exitoso!', response);
+          // Redirigimos al inicio (Home/Marketplace) tras obtener el token
           this.router.navigate(['/']); 
         },
         error: (err) => {
@@ -42,6 +53,8 @@ export class Login {
         }
       });
     } else {
+      // Si el formulario es inválido (campos vacíos), marcamos todo como 'touched'
+      // para que el HTML muestre los errores en rojo automáticamente.
       this.loginForm.markAllAsTouched();
     }
   }
